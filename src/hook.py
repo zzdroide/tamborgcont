@@ -1,10 +1,10 @@
 import os
 import sys
 
+from .constants import RC
 from .utils import getidx
 
 
-RC_INVALID_USAGE = 2
 
 
 def acquire_lock():
@@ -38,7 +38,7 @@ def main(argv):
             release_lock()
         else:
             print(f'Invalid $PAM_TYPE: {pam_type}')
-            sys.exit(RC_INVALID_USAGE)
+            sys.exit(RC.invalid_usage)
 
     elif hook_src == 'ssh_command':
         key_user = getidx(argv, 2)
@@ -46,11 +46,11 @@ def main(argv):
             fill_lock(key_user)
         else:
             print('"ssh_command" without key_user')
-            sys.exit(RC_INVALID_USAGE)
+            sys.exit(RC.invalid_usage)
 
     else:
         print(f'Invalid hook_src: {hook_src}')
-        sys.exit(RC_INVALID_USAGE)
+        sys.exit(RC.invalid_usage)
 
 
 if __name__ == '__main__':
