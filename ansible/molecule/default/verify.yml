@@ -1,0 +1,7 @@
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Verify resulting authorized_keys
+      ansible.builtin.script: verify_ak.sh
+      changed_when: false

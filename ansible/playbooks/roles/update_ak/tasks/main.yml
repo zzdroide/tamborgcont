@@ -1,0 +1,23 @@
+- name: Prevent destroying authorized_keys of development computer
+  ansible.builtin.stat:
+    path: ~/.ssh/yes-this-is-borg-repo-server-user
+  register: flag_file
+  failed_when: not flag_file.stat.exists
+
+- name: Move current authorized_keys to backup file
+  ansible.builtin.command:
+    cmd: mv {{ ak_path }} ~/.ssh/authorized_keys.old
+    removes: "{{ ak_path }}"   # Skips mv if doesn't exist
+
+- name: Set authorized keys
+  ansible.posix.authorized_key:
+    key_options: command="{{ command }}",restrict
+    key: "{{ item.pubkey }}"
+    comment: "{{ item.user }}"
+    user: "{{ ansible_user_id }}"
+    path: "{{ ak_path }}"
+  loop: "{{ (lookup('file', tamborgcont_config_path) | from_yaml).users }}"
+  vars:
+    command: "{{ ssh_command_hook }} && {{ borg_serve }}"
+    ssh_command_hook: /home/borg/tamborgcont/hook.sh ssh_command {{ item.user }}
+    borg_serve: borg serve --append-only --restrict-to-repository /home/borg/TAM

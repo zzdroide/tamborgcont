@@ -1,0 +1,10 @@
+- name: Converge
+  hosts: all
+  tasks:
+    - name: Test update_ak
+      ansible.builtin.include_role:
+        name: ../../playbooks/roles/update_ak
+      vars:
+        tamborgcont_config_path: ../../../../../config.example.yml
+        # Don't break Molecule ssh to VirtualBox:
+        ak_path: ~/.ssh/authorized_keys-molecule

@@ -1,0 +1,60 @@
+driver:
+  name: vagrant
+  provider:
+    name: virtualbox
+
+platforms:
+  - name: instance
+    box: debian/bullseye64
+    memory: 512 # MB
+    cpus: 1
+
+provisioner:
+  name: ansible
+
+  config_options:
+    defaults:
+      stdout_callback: debug    # human-readable output
+
+lint: ansible-lint --profile=production
+
+verifier:
+  name: ansible
+
+scenario:
+  create_sequence:
+    # - dependency
+    - create
+    - prepare
+  check_sequence:
+    # - dependency
+    # - cleanup
+    - destroy
+    - create
+    - prepare
+    - converge
+    - check
+    - destroy
+  converge_sequence:
+    # - dependency
+    - create
+    - prepare
+    - converge
+  destroy_sequence:
+    # - dependency
+    # - cleanup
+    - destroy
+  test_sequence:
+    # - dependency
+    - lint
+    # - cleanup
+    - destroy
+    # - syntax
+    - create
+    - prepare
+    - converge
+    # - idempotence
+    # - side_effect
+    - verify
+    # - cleanup
+    - destroy

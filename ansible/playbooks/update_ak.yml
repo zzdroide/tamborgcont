@@ -1,0 +1,10 @@
+- name: Rewrite authorized_keys from config.ini
+  hosts: localhost
+  connection: local
+  vars:
+    ansible_python_interpreter: auto_silent
+    tamborgcont_config_path: ../../../../../config.yml
+    ak_path: ~/.ssh/authorized_keys
+
+  roles:
+    - update_ak

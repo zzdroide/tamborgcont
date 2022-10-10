@@ -1,0 +1,6 @@
+- name: Prepare
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Prepare existing authorized_keys
+      ansible.builtin.script: prepare_existing_ak.sh
