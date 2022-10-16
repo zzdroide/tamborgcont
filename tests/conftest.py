@@ -4,7 +4,7 @@ import tempfile
 import pytest
 import sh
 
-from src.constants import Paths
+from hook.constants import Paths
 
 
 @pytest.fixture(autouse=True)
@@ -28,4 +28,4 @@ def no_sh_calls(monkeypatch):
 def no_local_config(monkeypatch):
     def prevent_call(*args, **kwargs):
         raise Exception('Prevented local config usage')
-    monkeypatch.setattr('src.config.get_config', prevent_call)
+    monkeypatch.setattr('hook.config.get_config', prevent_call)

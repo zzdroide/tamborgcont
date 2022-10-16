@@ -2,9 +2,9 @@ import os
 
 import pytest
 
-from src.constants import RC, Paths
-from src.hook import main
-from src.utils import mkfile
+from hook.constants import RC, Paths
+from hook.main import main
+from hook.utils import mkfile
 
 
 class TestAcquireLock:
@@ -15,14 +15,14 @@ class TestAcquireLock:
 
     @pytest.fixture()
     def borg_repo_locked(self, monkeypatch):
-        monkeypatch.setattr('src.Borg.is_repo_unlocked', lambda: False)
+        monkeypatch.setattr('hook.Borg.is_repo_unlocked', lambda: False)
 
     @pytest.fixture()
     def borg_repo_unlocked(self, monkeypatch):
-        monkeypatch.setattr('src.Borg.is_repo_unlocked', lambda: True)
+        monkeypatch.setattr('hook.Borg.is_repo_unlocked', lambda: True)
 
     def run_main(self):
-        main(['hook.py', 'pam'])
+        main(['main.py', 'pam'])
 
     def test_deny_on_reponok(self):
         assert not os.path.isfile(Paths.repo_is_ok)

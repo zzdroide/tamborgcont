@@ -2,8 +2,8 @@ import os
 
 import pytest
 
-from src.constants import RC, Paths
-from src.hook import main
+from hook.constants import RC, Paths
+from hook.main import main
 
 
 class TestFillLock:
@@ -13,14 +13,14 @@ class TestFillLock:
 
     @pytest.fixture()
     def known_user(self, monkeypatch):
-        monkeypatch.setattr('src.hook.does_user_exist', lambda u: True)
+        monkeypatch.setattr('hook.main.does_user_exist', lambda u: True)
 
     @pytest.fixture()
     def unknown_user(self, monkeypatch):
-        monkeypatch.setattr('src.hook.does_user_exist', lambda u: False)
+        monkeypatch.setattr('hook.main.does_user_exist', lambda u: False)
 
     def run_main(self):
-        main(['hook.py', 'ssh_command', 'user'])
+        main(['main.py', 'ssh_command', 'user'])
 
     def test_deny_unknown_user(self, unknown_user):
         with pytest.raises(SystemExit) as e:
@@ -28,7 +28,7 @@ class TestFillLock:
         assert e.value.code == RC.access_denied
 
     def test_fills(self, monkeypatch, known_user):
-        monkeypatch.setattr('src.Borg.dump_arcs', lambda: 'archives')
+        monkeypatch.setattr('hook.Borg.dump_arcs', lambda: 'archives')
 
         self.run_main()
 

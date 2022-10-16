@@ -2,8 +2,8 @@ import os
 
 import pytest
 
-from src.constants import RC, Paths
-from src.hook import main, check_repo
+from hook.constants import RC, Paths
+from hook.main import main, check_repo
 
 
 class TestReleaseLock:
@@ -17,10 +17,10 @@ class TestReleaseLock:
         os.mkdir(Paths.lock)
 
     def run_main(self):
-        main(['hook.py', 'pam'])
+        main(['main.py', 'pam'])
 
     def test_check_repo_ok_effect(self, monkeypatch, locked_repo):
-        monkeypatch.setattr('src.hook.check_repo', lambda: (True, ''))
+        monkeypatch.setattr('hook.main.check_repo', lambda: (True, ''))
 
         self.run_main()
 
@@ -28,7 +28,7 @@ class TestReleaseLock:
         assert not os.path.isdir(Paths.lock)
 
     def test_check_repo_nok_effect(self, monkeypatch, locked_repo):
-        monkeypatch.setattr('src.hook.check_repo', lambda: (False, ''))
+        monkeypatch.setattr('hook.main.check_repo', lambda: (False, ''))
 
         with pytest.raises(SystemExit) as e:
             self.run_main()
@@ -60,37 +60,37 @@ class TestReleaseLock:
             ('id3', 'user1-asdf'),
         ))
 
-        monkeypatch.setattr('src.Borg.dump_arcs', lambda: '')
+        monkeypatch.setattr('hook.Borg.dump_arcs', lambda: '')
         assert self.prev_were_modified()
 
-        monkeypatch.setattr('src.Borg.dump_arcs', lambda: self.arcs2str((
+        monkeypatch.setattr('hook.Borg.dump_arcs', lambda: self.arcs2str((
             ('id1', 'user1-asdf'),
             ('id3', 'user1-asdf'),
         )))
         assert self.prev_were_modified()
 
-        monkeypatch.setattr('src.Borg.dump_arcs', lambda: self.arcs2str((
+        monkeypatch.setattr('hook.Borg.dump_arcs', lambda: self.arcs2str((
             ('id1', 'user1-asdf'),
             ('id0', 'user2-asdf'),
             ('id3', 'user1-asdf'),
         )))
         assert self.prev_were_modified()
 
-        monkeypatch.setattr('src.Borg.dump_arcs', lambda: self.arcs2str((
+        monkeypatch.setattr('hook.Borg.dump_arcs', lambda: self.arcs2str((
             ('id1', 'user1-asdf'),
             ('id2', 'user2-asdg'),
             ('id3', 'user1-asdf'),
         )))
         assert self.prev_were_modified()
 
-        monkeypatch.setattr('src.Borg.dump_arcs', lambda: self.arcs2str((
+        monkeypatch.setattr('hook.Borg.dump_arcs', lambda: self.arcs2str((
             ('id1', 'user1-asdf'),
             ('id3', 'user1-asdf'),
             ('id4', 'user1-asdf'),
         )))
         assert self.prev_were_modified()
 
-        monkeypatch.setattr('src.Borg.dump_arcs', lambda: self.arcs2str((
+        monkeypatch.setattr('hook.Borg.dump_arcs', lambda: self.arcs2str((
             ('id1', 'user1-asdf'),
             ('id0', 'user2-asdf'),
             ('id3', 'user1-asdf'),
@@ -98,7 +98,7 @@ class TestReleaseLock:
         )))
         assert self.prev_were_modified()
 
-        monkeypatch.setattr('src.Borg.dump_arcs', lambda: self.arcs2str((
+        monkeypatch.setattr('hook.Borg.dump_arcs', lambda: self.arcs2str((
             ('id1', 'user1-asdf'),
             ('id2', 'user2-asdg'),
             ('id3', 'user1-asdf'),
@@ -111,18 +111,18 @@ class TestReleaseLock:
             ('id1', 'user1-asdf'),
         ))
 
-        monkeypatch.setattr('src.Borg.dump_arcs', lambda: self.arcs2str((
+        monkeypatch.setattr('hook.Borg.dump_arcs', lambda: self.arcs2str((
             ('id1', 'user1-asdf'),
         )))
         assert check_repo()[0]
 
-        monkeypatch.setattr('src.Borg.dump_arcs', lambda: self.arcs2str((
+        monkeypatch.setattr('hook.Borg.dump_arcs', lambda: self.arcs2str((
             ('id1', 'user1-asdf'),
             ('id2', 'user1-asdf'),
         )))
         assert check_repo()[0]
 
-        monkeypatch.setattr('src.Borg.dump_arcs', lambda: self.arcs2str((
+        monkeypatch.setattr('hook.Borg.dump_arcs', lambda: self.arcs2str((
             ('id1', 'user1-asdf'),
             ('id2', 'user1-asdf'),
             ('id3', 'user1-asdf'),
@@ -130,13 +130,13 @@ class TestReleaseLock:
         )))
         assert check_repo()[0]
 
-        monkeypatch.setattr('src.Borg.dump_arcs', lambda: self.arcs2str((
+        monkeypatch.setattr('hook.Borg.dump_arcs', lambda: self.arcs2str((
             ('id1', 'user1-asdf'),
             ('id2', 'user2-asdf'),
         )))
         assert not check_repo()[0]
 
-        monkeypatch.setattr('src.Borg.dump_arcs', lambda: self.arcs2str((
+        monkeypatch.setattr('hook.Borg.dump_arcs', lambda: self.arcs2str((
             ('id1', 'user1-asdf'),
             ('id2', 'user1-asdf'),
             ('id3', 'user2-asdf'),
