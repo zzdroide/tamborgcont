@@ -1,0 +1,32 @@
+- name: Set sudo nopasswd
+  ansible.builtin.copy:
+    dest: /etc/sudoers.d/nopasswd
+    content: "%sudo ALL=(ALL:ALL) NOPASSWD:ALL\n"
+    mode: 0440
+  become: true
+
+- name: Add group for borg user
+  ansible.builtin.group:
+    name: borg
+    state: present
+  become: true
+
+- name: Add borg user
+  ansible.builtin.user:
+    name: borg
+    group: borg   # Without this, gid=100(users)
+    password: '!'
+    shell: /bin/zsh
+    # Unfortunately it's not enough to set "umask" here :/
+
+    generate_ssh_key: true
+    ssh_key_type: ed25519
+  become: true
+
+- name: Add admin user to borg group, and set zsh shell
+  ansible.builtin.user:
+    name: "{{ ansible_user_id }}"
+    groups: borg
+    append: true
+    shell: /bin/zsh
+  become: true

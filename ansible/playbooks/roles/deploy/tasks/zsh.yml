@@ -1,0 +1,16 @@
+- name: Clone omz repo
+  ansible.builtin.git:
+    clone: true
+    repo: https://github.com/zzdroide/omz
+    dest: /usr/share/omz
+    version: 63f28b2c8a955e7b4cdf8f42097028136e76699d
+  become: true
+
+- name: Setup .zshrc
+  # https://ericsysmin.com/2019/06/20/how-to-loop-blocks-of-code-in-ansible/
+  ansible.builtin.include_tasks: zsh_rc.yml
+  vars:
+    ansible_become: true
+  loop:
+    - "{{ ansible_user_id }}"
+    - borg

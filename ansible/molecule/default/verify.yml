@@ -5,3 +5,11 @@
     - name: Verify resulting authorized_keys
       ansible.builtin.script: verify_ak.sh
       changed_when: false
+
+    - name: Verify shell prompt
+      ansible.builtin.script: verify_shell.sh {{ item }}
+      become: true
+      loop:
+        - "{{ ansible_user }}"
+        - borg
+      changed_when: false

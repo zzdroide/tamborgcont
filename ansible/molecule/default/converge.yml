@@ -8,3 +8,7 @@
         tamborgcont_config_path: ../../../../../config.example.yml
         # Don't break Molecule ssh to VirtualBox:
         ak_path: ~/.ssh/authorized_keys-molecule
+
+    - name: Test deploy
+      ansible.builtin.include_role:
+        name: ../../playbooks/roles/deploy

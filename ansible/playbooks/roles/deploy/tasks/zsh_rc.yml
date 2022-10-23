@@ -1,0 +1,20 @@
+- name: Create .zshrc
+  ansible.builtin.copy:
+    src: /usr/share/omz/example.zshrc
+    remote_src: true
+    dest: /home/{{ item }}/.zshrc
+    owner: "{{ item }}"
+    group: "{{ item }}"
+    mode: 0644
+
+- name: Use global omz installation
+  ansible.builtin.replace:
+    path: /home/{{ item }}/.zshrc
+    regexp: ~/\.omz/
+    replace: /usr/share/omz/
+
+- name: Set omz theme
+  ansible.builtin.lineinfile:
+    path: /home/{{ item }}/.zshrc
+    regexp: ^ZSH_THEME=
+    line: ZSH_THEME=michelebologna
