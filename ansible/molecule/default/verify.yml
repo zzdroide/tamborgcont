@@ -13,3 +13,7 @@
         - "{{ ansible_user }}"
         - borg
       changed_when: false
+
+    - name: Verify ssh with none cipher
+      ansible.builtin.script: verify_ssh_none.sh
+      changed_when: true  # known_hosts

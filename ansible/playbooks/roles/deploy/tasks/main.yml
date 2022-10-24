@@ -10,6 +10,13 @@
 
       - autojump
       - zsh
+
+      # To compile hpn-ssh  https://github.com/rapier1/openssh-portable/blob/1ebad15dce0a04e99b4717eba5d13ec8240d322b/HPNSSHInstallation.txt#L18
+      - build-essential
+      - libssl-dev
+      - zlib1g-dev
+      - autoconf
+      - libpam0g-dev
     state: present
     update_cache: true
     cache_valid_time: "{{ 60 * 60 * 12 }}"
@@ -20,3 +27,6 @@
 
 - name: Setup zsh
   ansible.builtin.import_tasks: zsh.yml
+
+- name: Setup hpn-ssh
+  ansible.builtin.import_tasks: hpnssh.yml

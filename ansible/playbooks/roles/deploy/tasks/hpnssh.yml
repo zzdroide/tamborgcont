@@ -1,0 +1,72 @@
+# References:
+# https://github.com/rapier1/openssh-portable/tree/hpn-9_0_P1#building-from-git
+# https://github.com/rapier1/openssh-portable/blob/1ebad15dce0a04e99b4717eba5d13ec8240d322b/HPNSSHInstallation.txt
+
+- name: Clone repo
+  ansible.builtin.git:
+    clone: true
+    repo: https://github.com/rapier1/openssh-portable
+    dest: ~/hpn-ssh
+    version: 22d7885e9cca777aa53517d68ce9621ce42dbcc0  # hpn-9_0_P1
+
+- name: Check if already installed
+  ansible.builtin.stat:
+    path: /usr/local/sbin/hpnsshd
+  register: hpnstat
+
+- name: Install hpn-ssh
+  when: not hpnstat.stat.exists
+  block:
+    - name: Make
+      ansible.builtin.shell:
+        chdir: ~/hpn-ssh
+        cmd: autoreconf && ./configure --with-pam && make -j"$(nproc)"
+      changed_when: true
+
+    - name: Make install
+      ansible.builtin.command:
+        chdir: ~/hpn-ssh
+        cmd: sudo make install
+      changed_when: true
+
+    - name: Delete default config
+      # So ansible.builtin.copy won't overwrite existing changes
+      ansible.builtin.file:
+        state: absent
+        path: /usr/local/etc/hpnssh/sshd_config
+      become: true
+
+- name: Add priv user
+  ansible.builtin.user:
+    name: hpnsshd
+    comment: Privilege separated HPNSSH User
+    home: /run/hpnsshd
+    create_home: false
+    password: '!'
+    shell: /sbin/nologin
+    system: true
+  become: true
+
+- name: Copy config and service files
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    force: false  # Don't overwrite
+    owner: root
+    group: root
+    mode: 0644
+  loop:
+    - src: files/sshd_config
+      dest: /usr/local/etc/hpnssh/sshd_config
+    - src: files/hpnssh-default
+      dest: /etc/default/hpnssh
+    - src: files/hpnssh.service
+      dest: /lib/systemd/system/hpnssh.service
+  become: true
+
+- name: Enable and start service
+  ansible.builtin.systemd:
+    name: hpnssh.service
+    state: started
+    enabled: true
+  become: true
