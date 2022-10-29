@@ -4,7 +4,3 @@
   tasks:
     - name: Prepare existing mock of authorized_keys
       ansible.builtin.script: prepare_existing_ak.sh
-
-    - name: Authorize ssh localhost
-      # ansible.posix.authorized_key would require loading pubkey from remote...
-      ansible.builtin.script: prepare_ssh_localhost.sh

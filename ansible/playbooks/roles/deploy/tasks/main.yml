@@ -30,3 +30,6 @@
 
 - name: Setup hpn-ssh
   ansible.builtin.import_tasks: hpnssh.yml
+
+- name: Setup hook
+  ansible.builtin.import_tasks: hook.yml

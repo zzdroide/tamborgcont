@@ -1,0 +1,38 @@
+- name: Disable MOTD in PAM
+  ansible.builtin.replace:
+    path: /etc/pam.d/sshd
+    regexp: '^([^#].+\spam_motd.so\s)'
+    replace: '#\1'
+  become: true
+
+- name: Set PAM to call hook
+  # Reference: https://www.redpill-linpro.com/sysadvent/2017/12/11/break-the-glass.html
+  ansible.builtin.lineinfile:
+    path: /etc/pam.d/sshd
+    line: "{{ item.line }}"
+    insertbefore: "{{ item.insertbefore | default(omit) }}"
+  loop:
+    - line: "{{ pam_exec_line }}"
+    - line: "{{ comment_line }}"
+      insertbefore: "{{ pam_exec_line }}"
+    - line: " "
+      insertbefore: "{{ comment_line }}"
+  vars:
+    pam_exec_line: session required pam_exec.so quiet stdout /usr/local/lib/ssh_pam_hook.sh
+    comment_line: "# open_session/close_session hook"
+  become: true
+
+- name: Symlink ssh PAM config to hpnssh
+  ansible.builtin.file:
+    state: link
+    src: /etc/pam.d/sshd
+    dest: /etc/pam.d/hpnsshd
+  become: true
+
+- name: Add PAM hook script
+  ansible.builtin.copy:
+    src: files/ssh_pam_hook.sh
+    dest: /usr/local/lib/ssh_pam_hook.sh
+    force: false  # Don't overwrite existing
+    mode: 0744
+  become: true
