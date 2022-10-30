@@ -4,3 +4,10 @@
   tasks:
     - name: Prepare existing mock of authorized_keys
       ansible.builtin.script: prepare_existing_ak.sh
+
+    - name: Set quiet boot like bare-metal Debian
+      ansible.builtin.replace:
+        path: /etc/default/grub
+        regexp: ^GRUB_CMDLINE_LINUX_DEFAULT="(.+)
+        replace: GRUB_CMDLINE_LINUX_DEFAULT="quiet \1
+      become: true

@@ -22,6 +22,9 @@
     cache_valid_time: "{{ 60 * 60 * 12 }}"
   become: true
 
+- name: Setup system
+  ansible.builtin.import_tasks: system.yml
+
 - name: Setup users
   ansible.builtin.import_tasks: users.yml
 
