@@ -30,3 +30,12 @@
     append: true
     shell: /bin/zsh
   become: true
+
+- name: Add ssh AK flag to borg user
+  ansible.builtin.file:
+    state: touch
+    path: /home/borg/.ssh/yes-this-is-borg-repo-server-user
+    owner: borg
+    group: borg
+    mode: 0644
+  become: true
