@@ -11,6 +11,8 @@
       - autojump
       - zsh
 
+      - ethtool
+
       # To compile hpn-ssh  https://github.com/rapier1/openssh-portable/blob/1ebad15dce0a04e99b4717eba5d13ec8240d322b/HPNSSHInstallation.txt#L18
       - build-essential
       - libssl-dev
@@ -23,7 +25,10 @@
   become: true
 
 - name: Setup system
-  ansible.builtin.import_tasks: system.yml
+  ansible.builtin.include_tasks: system.yml
+  vars:
+    ansible_become: true
+    iface: "{{ ansible_default_ipv4.interface }}"   # enp3s0
 
 - name: Setup users
   ansible.builtin.import_tasks: users.yml

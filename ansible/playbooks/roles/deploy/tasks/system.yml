@@ -3,13 +3,11 @@
     path: /etc/default/grub
     regexp: ^GRUB_CMDLINE_LINUX_DEFAULT="quiet (.+)
     replace: GRUB_CMDLINE_LINUX_DEFAULT="\1
-  become: true
   register: dqb
 
 - name: Update-grub
   ansible.builtin.command: update-grub
   when: dqb.changed
-  become: true
 
 - name: Add silence-console.service
   ansible.builtin.copy:
@@ -18,25 +16,23 @@
     owner: root
     group: root
     mode: 0644
-  become: true
 
 - name: Enable and start silence-console.service
   ansible.builtin.systemd:
     name: silence-console.service
     state: started
     enabled: true
-  become: true
 
 - name: Check if firmware-realtek could be useful
-  ansible.builtin.shell: 'set -o pipefail && dmesg | grep -q " firmware: failed to load rtl_nic/"'
-  become: true
+  ansible.builtin.shell:
+    cmd: 'set -o pipefail && dmesg | grep -q " firmware: failed to load rtl_nic/"'
+    executable: /bin/bash
   failed_when: false
   changed_when: false
   register: dmesgrep
 
 - name: Install firmware-realtek
   when: dmesgrep.rc == 0
-  become: true
   block:
     - name: Enable non-free archive
       ansible.builtin.replace:
@@ -49,3 +45,22 @@
         name: firmware-realtek
         state: present
         update_cache: true
+
+- name: Enable WOL
+  ansible.builtin.lineinfile:
+    path: /etc/network/interfaces
+    insertafter: ^iface {{ iface }} inet
+    line: "  ethernet-wol g"
+  register: enable_wol
+
+- name: Apply interface changes
+  ansible.builtin.shell: ifdown {{ iface }} && ifup {{ iface }}
+  when: enable_wol.changed
+  changed_when: true
+
+- name: Assert WOL enabled
+  ansible.builtin.shell:
+    cmd: 'set -o pipefail && ethtool {{ iface }} | grep -q "Wake-on: g"'
+    executable: /bin/bash
+  changed_when: false
+  tags: molecule-notest   # "netlink error: Operation not supported" in VirtualBox
