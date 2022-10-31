@@ -3,6 +3,7 @@
     src: /usr/share/omz/example.zshrc
     remote_src: true
     dest: /home/{{ item }}/.zshrc
+    force: false  # Don't overwrite existing
     owner: "{{ item }}"
     group: "{{ item }}"
     mode: 0644
