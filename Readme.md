@@ -28,3 +28,9 @@ molecule test
 - Install Debian, include OpenSSH server. Set a strong password because SSH PasswordAuthentication defaults to yes.
 - Set static IP (preferably at the router, against MAC)
 - `ssh-copy-id`, set `PasswordAuthentication no` in /etc/ssh/sshd_config, `sudo systemctl restart ssh`
+
+And from local, deploy to server with:
+```sh
+cd ansible
+poetry run ansible-playbook -i t@192.168.0.63, -l t@192.168.0.63 --ask-become-pass playbooks/deploy.yml
+```
