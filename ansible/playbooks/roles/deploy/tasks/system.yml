@@ -26,3 +26,26 @@
     state: started
     enabled: true
   become: true
+
+- name: Check if firmware-realtek could be useful
+  ansible.builtin.shell: 'set -o pipefail && dmesg | grep -q " firmware: failed to load rtl_nic/"'
+  become: true
+  failed_when: false
+  changed_when: false
+  register: dmesgrep
+
+- name: Install firmware-realtek
+  when: dmesgrep.rc == 0
+  become: true
+  block:
+    - name: Enable non-free archive
+      ansible.builtin.replace:
+        path: /etc/apt/sources.list
+        regexp: ^deb(|-src) (\S+) bullseye main$
+        replace: deb\1 \2 bullseye main non-free
+
+    - name: Install the package
+      ansible.builtin.apt:
+        name: firmware-realtek
+        state: present
+        update_cache: true

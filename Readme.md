@@ -25,7 +25,7 @@ molecule test
 
 ## Server setup
 
-- Install Debian, include OpenSSH server. Set a strong password because SSH PasswordAuthentication defaults to yes.
+- Install Debian bullseye, include OpenSSH server. Set a strong password because SSH PasswordAuthentication defaults to yes.
 - Set static IP (preferably at the router, against MAC)
 - `ssh-copy-id`, set `PasswordAuthentication no` in /etc/ssh/sshd_config, `sudo systemctl restart ssh`
 
