@@ -1,17 +1,62 @@
+- name: Check that become_user is working
+  ansible.builtin.command: whoami
+  become: true
+  become_user: nobody
+  register: check_become_user
+  failed_when: check_become_user.stdout != "nobody"
+  # If it fails here, maybe you forgot "ANSIBLE_PIPELINING=True"
+  changed_when: false
+
+- name: Install prerequisite packages
+  ansible.builtin.apt:
+    name:
+      - python3-apt
+      - gnupg2
+    state: present
+    update_cache: true
+    cache_valid_time: "{{ 60 * 60 * 12 }}"
+  become: true
+
+- name: Reduce deadsnakes PPA priority
+  ansible.builtin.copy:
+    src: files/deadsnakes_apt_preferences
+    dest: /etc/apt/preferences.d/deadsnakes
+    owner: root
+    group: root
+    mode: 0644
+  become: true
+
+- name: Add deadsnakes PPA
+  ansible.builtin.apt_repository:
+    repo: ppa:deadsnakes/ppa
+    codename: focal   # https://askubuntu.com/questions/445487/what-debian-version-are-the-different-ubuntu-versions-based-on/445496#445496
+    state: present
+    update_cache: true
+  become: true
+
 - name: Install packages
   ansible.builtin.apt:
     name:
+      # Basic utilities
       - curl
       - htop
       - ncdu
 
+      # Git
       - git
       - tig
 
+      # oh-my-zsh and plugins
       - autojump
       - zsh
 
+      # Check Wake-on-LAN
       - ethtool
+
+      # Poetry with python3.11
+      - python3-pip
+      - python3-venv
+      - python3.11
 
       # To compile hpn-ssh  https://github.com/rapier1/openssh-portable/blob/1ebad15dce0a04e99b4717eba5d13ec8240d322b/HPNSSHInstallation.txt#L18
       - build-essential
@@ -19,6 +64,21 @@
       - zlib1g-dev
       - autoconf
       - libpam0g-dev
+
+      # To build Borg  # https://borgbackup.readthedocs.io/en/2.0.0b4/installation.html#debian-ubuntu
+      - python3.11
+      - python3.11-dev
+      - libacl1-dev
+      - libacl1
+      - libssl-dev
+      - liblz4-dev
+      - libzstd-dev
+      - libxxhash-dev
+      - build-essential
+      - pkg-config
+      - python3-pkgconfig
+      - libfuse3-dev
+      - fuse3
     state: present
     update_cache: true
     cache_valid_time: "{{ 60 * 60 * 12 }}"
@@ -41,3 +101,9 @@
 
 - name: Setup hook
   ansible.builtin.import_tasks: hook.yml
+
+- name: Install Python packages
+  ansible.builtin.import_tasks: python.yml
+  vars:
+    ansible_become: true
+    ansible_become_user: borg

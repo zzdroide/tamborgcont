@@ -32,5 +32,5 @@ molecule test
 And from local, deploy to server with:
 ```sh
 cd ansible
-poetry run ansible-playbook -i t@192.168.0.63, -l t@192.168.0.63 --ask-become-pass playbooks/deploy.yml
+ANSIBLE_PIPELINING=True poetry run ansible-playbook -i t@192.168.0.63, -l t@192.168.0.63 --ask-become-pass playbooks/deploy.yml
 ```

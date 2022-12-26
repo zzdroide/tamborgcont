@@ -22,3 +22,11 @@
     - name: Verify ssh
       ansible.builtin.script: verify_ssh.sh
       changed_when: true  # hook.sh
+
+    - name: Verify Borg binary
+      become: true
+      become_user: borg
+      ansible.builtin.command: /home/borg/.local/bin/borg --version
+      changed_when: false
+      register: borg_version
+      failed_when: borg_version.stdout != 'borg 2.0.0b4'

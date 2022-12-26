@@ -19,3 +19,14 @@
     path: /home/{{ item }}/.zshrc
     regexp: ^ZSH_THEME=
     line: ZSH_THEME=michelebologna
+
+- name: Add .local/bin to PATH
+  ansible.builtin.lineinfile:
+    path: /home/{{ item }}/.zprofile
+    regexp: ^export PATH=
+    line: export PATH="$HOME/.local/bin:$PATH"
+    state: present
+    create: true
+    owner: "{{ item }}"
+    group: "{{ item }}"
+    mode: 0644
