@@ -2,7 +2,8 @@
 
 ## Local setup
 ```sh
-pipx install poetry~=1.2.0
+sudo add-apt-repository ppa:deadsnakes/ppa && sudo apt update && sudo apt install python3.11
+pipx install poetry~=1.7.1
 poetry install
 ./install_ansible_collections.sh
 
@@ -12,7 +13,7 @@ nano config.yml
 
 ### Running tests
 
-Requires VirtualBox installed.
+Requires [VirtualBox](https://www.virtualbox.org/wiki/Linux_Downloads#Debian-basedLinuxdistributions) and [Vagrant](https://developer.hashicorp.com/vagrant/install?product_intent=vagrant#Linux) installed.
 
 ```sh
 poetry shell

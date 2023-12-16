@@ -1,2 +1,9 @@
 skip_list:
-  - no-handler  # https://github.com/ansible/ansible-lint/issues/419
+  - no-handler        # https://github.com/ansible/ansible-lint/issues/419
+  - role-name[path]   # This won't be published to Galaxy
+
+profile: production
+
+exclude_paths:
+  - .cache/
+  - .collections/

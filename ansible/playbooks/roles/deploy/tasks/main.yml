@@ -23,7 +23,7 @@
     dest: /etc/apt/preferences.d/deadsnakes
     owner: root
     group: root
-    mode: 0644
+    mode: "0644"
   become: true
 
 - name: Add deadsnakes PPA

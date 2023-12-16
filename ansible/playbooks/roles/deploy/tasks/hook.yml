@@ -1,25 +1,27 @@
 - name: Disable MOTD in PAM
   ansible.builtin.replace:
     path: /etc/pam.d/sshd
-    regexp: '^([^#].+\spam_motd.so\s)'
-    replace: '#\1'
+    regexp: ^([^#].+\spam_motd.so\s)
+    replace: "#\\1"
   become: true
 
 - name: Set PAM to call hook
   # Reference: https://www.redpill-linpro.com/sysadvent/2017/12/11/break-the-glass.html
   ansible.builtin.lineinfile:
+    # Using lineinfile just to prettily insert lines at the end.
     path: /etc/pam.d/sshd
     line: "{{ item.line }}"
     insertbefore: "{{ item.insertbefore | default(omit) }}"
   loop:
-    - line: "{{ pam_exec_line }}"
-    - line: "{{ comment_line }}"
-      insertbefore: "{{ pam_exec_line }}"
-    - line: " "
-      insertbefore: "{{ comment_line }}"
+    - line: "{{ line3 }}"
+    - line: "{{ line2 }}"
+      insertbefore: "{{ line3 }}"
+    - line: "{{ line1 }}"
+      insertbefore: "{{ line2 }}"
   vars:
-    pam_exec_line: session required pam_exec.so quiet stdout /usr/local/lib/ssh_pam_hook.sh
-    comment_line: "# open_session/close_session hook"
+    line1: " "
+    line2: "# open_session/close_session hook"
+    line3: session required pam_exec.so quiet stdout /usr/local/lib/ssh_pam_hook.sh
   become: true
 
 - name: Symlink ssh PAM config to hpnssh
@@ -34,5 +36,5 @@
     src: files/ssh_pam_hook.sh
     dest: /usr/local/lib/ssh_pam_hook.sh
     force: false  # Don't overwrite existing
-    mode: 0744
+    mode: "0744"
   become: true

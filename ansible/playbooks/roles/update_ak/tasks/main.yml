@@ -6,8 +6,8 @@
 
 - name: Move current authorized_keys to backup file
   ansible.builtin.command:
-    cmd: mv {{ ak_path }} ~/.ssh/authorized_keys.old
-    removes: "{{ ak_path }}"   # Skips mv if doesn't exist
+    cmd: mv {{ update_ak__file }} ~/.ssh/authorized_keys.old
+    removes: "{{ update_ak__file }}"  # Skips mv if doesn't exist
 
 - name: Set authorized keys
   ansible.posix.authorized_key:
@@ -15,8 +15,8 @@
     key: "{{ item.pubkey }}"
     comment: "{{ item.user }}"
     user: "{{ ansible_user_id }}"
-    path: "{{ ak_path }}"
-  loop: "{{ (lookup('file', tamborgcont_config_path) | from_yaml).users }}"
+    path: "{{ update_ak__file }}"
+  loop: "{{ (lookup('file', update_ak__config) | from_yaml).users }}"
   vars:
     command: "{{ ssh_command_hook }} && {{ borg_serve }}"
     ssh_command_hook: /home/borg/tamborgcont/hook.sh ssh_command {{ item.user }}

@@ -30,7 +30,7 @@
       changed_when: true
 
     - name: Delete default config
-      # So ansible.builtin.copy won't overwrite existing changes
+      # So ansible.builtin.copy "overwrites" only the default config later.
       ansible.builtin.file:
         state: absent
         path: /usr/local/etc/hpnssh/sshd_config
@@ -42,7 +42,7 @@
     comment: Privilege separated HPNSSH User
     home: /run/hpnsshd
     create_home: false
-    password: '!'
+    password: "!"
     shell: /sbin/nologin
     system: true
   become: true
@@ -54,7 +54,7 @@
     force: false  # Don't overwrite existing
     owner: root
     group: root
-    mode: 0644
+    mode: "0644"
   loop:
     - src: files/sshd_config
       dest: /usr/local/etc/hpnssh/sshd_config

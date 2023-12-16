@@ -11,7 +11,7 @@
     python: "{{ item.python | default(omit) }}"
   loop:
     - name: poetry
-      source: poetry~=1.3
+      source: poetry~=1.7.1
     - name: borgbackup
       source: borgbackup[pyfuse3]==2.0.0b4
       python: python3.11

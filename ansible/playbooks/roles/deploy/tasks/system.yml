@@ -8,6 +8,7 @@
 - name: Update-grub
   ansible.builtin.command: update-grub
   when: dqb.changed
+  changed_when: true
 
 - name: Add silence-console.service
   ansible.builtin.copy:
@@ -15,7 +16,7 @@
     dest: /etc/systemd/system/silence-console.service
     owner: root
     group: root
-    mode: 0644
+    mode: "0644"
 
 - name: Enable and start silence-console.service
   ansible.builtin.systemd:

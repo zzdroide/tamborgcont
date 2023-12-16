@@ -6,7 +6,7 @@
     force: false  # Don't overwrite existing
     owner: "{{ item }}"
     group: "{{ item }}"
-    mode: 0644
+    mode: "0644"
 
 - name: Use global omz installation
   ansible.builtin.replace:
@@ -29,4 +29,4 @@
     create: true
     owner: "{{ item }}"
     group: "{{ item }}"
-    mode: 0644
+    mode: "0644"

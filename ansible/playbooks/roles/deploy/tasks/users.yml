@@ -2,7 +2,7 @@
   ansible.builtin.copy:
     dest: /etc/sudoers.d/nopasswd
     content: "%sudo ALL=(ALL:ALL) NOPASSWD:ALL\n"
-    mode: 0440
+    mode: "0440"
   become: true
 
 - name: Add group for borg user
@@ -15,7 +15,7 @@
   ansible.builtin.user:
     name: borg
     group: borg   # Without this, gid=100(users)
-    password: '!'
+    password: "!"
     shell: /bin/zsh
     # Unfortunately it's not enough to set "umask" here :/
 
@@ -37,5 +37,5 @@
     path: /home/borg/.ssh/yes-this-is-borg-repo-server-user
     owner: borg
     group: borg
-    mode: 0644
+    mode: "0644"
   become: true

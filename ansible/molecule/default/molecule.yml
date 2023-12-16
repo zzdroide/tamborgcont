@@ -1,3 +1,7 @@
+dependency:
+  name: shell
+  command: ansible-lint
+
 driver:
   name: vagrant
   provider:
@@ -14,11 +18,9 @@ provisioner:
 
   config_options:
     defaults:
-      stdout_callback: yaml    # human-readable output
+      stdout_callback: yaml   # human-readable output
     ssh_connection:
       pipelining: true
-
-lint: ansible-lint --profile=production
 
 verifier:
   name: ansible
@@ -47,8 +49,7 @@ scenario:
     # - cleanup
     - destroy
   test_sequence:
-    # - dependency
-    - lint
+    - dependency
     # - cleanup
     - destroy
     # - syntax
