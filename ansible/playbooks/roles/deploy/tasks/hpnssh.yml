@@ -1,13 +1,17 @@
 # References:
-# https://github.com/rapier1/openssh-portable/tree/hpn-9_0_P1#building-from-git
-# https://github.com/rapier1/openssh-portable/blob/1ebad15dce0a04e99b4717eba5d13ec8240d322b/HPNSSHInstallation.txt
+# https://github.com/rapier1/hpn-ssh/tree/18.2.0#building-from-git
+# https://github.com/rapier1/hpn-ssh/blob/18.2.0/HPNSSHInstallation.txt
+
+# Note: now there's a PPA (https://launchpad.net/~rapier1/+archive/ubuntu/hpnssh)
+# but it's currently failing with "cannot access '/run/hppnsshd': No such file or directory",
+# so I'll keep building from git for now.
 
 - name: Clone repo
   ansible.builtin.git:
     clone: true
-    repo: https://github.com/rapier1/openssh-portable
+    repo: https://github.com/rapier1/hpn-ssh
     dest: ~/hpn-ssh
-    version: 22d7885e9cca777aa53517d68ce9621ce42dbcc0  # hpn-9_0_P1
+    version: c868a3b35e1f1d4c0e811a66596312c464cc76e2  # 18.2.0
 
 - name: Check if already installed
   ansible.builtin.stat:

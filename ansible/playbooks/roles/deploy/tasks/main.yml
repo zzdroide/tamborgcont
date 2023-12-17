@@ -59,7 +59,7 @@
       - python3-venv
       - python3.12
 
-      # To compile hpn-ssh  https://github.com/rapier1/openssh-portable/blob/1ebad15dce0a04e99b4717eba5d13ec8240d322b/HPNSSHInstallation.txt#L18
+      # To compile hpn-ssh  https://github.com/rapier1/hpn-ssh/blob/18.2.0/HPNSSHInstallation.txt#L18
       - build-essential
       - libssl-dev
       - zlib1g-dev
