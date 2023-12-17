@@ -6,4 +6,4 @@ profile: production
 
 exclude_paths:
   - .cache/
-  - .collections/
+  - .galaxy/

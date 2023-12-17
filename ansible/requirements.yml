@@ -1,3 +1,8 @@
 collections:
   - ansible.posix
   - community.general
+
+roles:
+  - name: robertdebock.locale
+    src: https://github.com/robertdebock/ansible-role-locale
+    version: aca6892c917998da24747a089f739260de18fbb3 # 3.3.9

@@ -1,7 +1,7 @@
 __pycache__/
 *.py[cod]
 
-/ansible/.collections/
+/ansible/.galaxy/
 
 /config.yml
 /state/

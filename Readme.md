@@ -5,7 +5,7 @@
 sudo add-apt-repository ppa:deadsnakes/ppa && sudo apt update && sudo apt install python3.12
 pipx install poetry~=1.7.1
 poetry install
-./install_ansible_collections.sh
+./install_galaxy_reqs.sh
 
 cp config.example.yml config.yml
 nano config.yml

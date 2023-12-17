@@ -5,3 +5,4 @@ cd "$(dirname "$0")/ansible"
 source vars.sh
 
 poetry -q run ansible-galaxy collection install -r requirements.yml
+poetry -q run ansible-galaxy role install -r requirements.yml

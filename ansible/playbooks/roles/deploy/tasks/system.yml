@@ -1,3 +1,7 @@
+- name: Set en_US.UTF-8 locale
+  ansible.builtin.include_role:
+    name: robertdebock.locale
+
 - name: Disable quiet boot
   ansible.builtin.replace:
     path: /etc/default/grub
