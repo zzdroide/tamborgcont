@@ -53,10 +53,10 @@
       # Check Wake-on-LAN
       - ethtool
 
-      # Poetry with python3.11
+      # Poetry with python3.12
       - python3-pip
       - python3-venv
-      - python3.11
+      - python3.12
 
       # To compile hpn-ssh  https://github.com/rapier1/openssh-portable/blob/1ebad15dce0a04e99b4717eba5d13ec8240d322b/HPNSSHInstallation.txt#L18
       - build-essential
@@ -65,9 +65,9 @@
       - autoconf
       - libpam0g-dev
 
-      # To build Borg  # https://borgbackup.readthedocs.io/en/2.0.0b4/installation.html#debian-ubuntu
-      - python3.11
-      - python3.11-dev
+      # To build Borg  # https://borgbackup.readthedocs.io/en/2.0.0b7/installation.html#debian-ubuntu
+      - python3.12
+      - python3.12-dev
       - libacl1-dev
       - libacl1
       - libssl-dev

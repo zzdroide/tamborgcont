@@ -2,7 +2,7 @@
 
 ## Local setup
 ```sh
-sudo add-apt-repository ppa:deadsnakes/ppa && sudo apt update && sudo apt install python3.11
+sudo add-apt-repository ppa:deadsnakes/ppa && sudo apt update && sudo apt install python3.12
 pipx install poetry~=1.7.1
 poetry install
 ./install_ansible_collections.sh

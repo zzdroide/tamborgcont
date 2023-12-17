@@ -13,5 +13,5 @@
     - name: poetry
       source: poetry~=1.7.1
     - name: borgbackup
-      source: borgbackup[pyfuse3]==2.0.0b4
-      python: python3.11
+      source: borgbackup[pyfuse3]==2.0.0b7
+      python: python3.12
