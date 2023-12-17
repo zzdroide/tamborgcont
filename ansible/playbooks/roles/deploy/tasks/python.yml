@@ -1,8 +1,3 @@
-- name: Install pipx
-  ansible.builtin.pip:
-    name: pipx
-    state: present
-
 - name: Install packages with pipx
   community.general.pipx:
     name: "{{ item.name }}"

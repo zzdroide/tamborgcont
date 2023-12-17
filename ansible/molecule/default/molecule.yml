@@ -9,7 +9,7 @@ driver:
 
 platforms:
   - name: instance
-    box: debian/bullseye64
+    box: debian/bookworm64
     memory: 512 # MB
     cpus: 1
 

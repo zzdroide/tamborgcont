@@ -7,7 +7,7 @@
       become: true
       changed_when: false
       register: ext4_reserved
-      failed_when: ext4_reserved.stdout|trim != "2.0G"
+      failed_when: ext4_reserved.stdout | trim != "2.0G"
 
     - name: Verify resulting authorized_keys
       ansible.builtin.script: verify_ak.sh
