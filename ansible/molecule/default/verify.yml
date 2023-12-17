@@ -2,6 +2,13 @@
   hosts: all
   gather_facts: false
   tasks:
+    - name: Verify reserved ext4 space
+      ansible.builtin.script: get_ext4_reserved_space.sh /
+      become: true
+      changed_when: false
+      register: ext4_reserved
+      failed_when: ext4_reserved.stdout|trim != "2.0G"
+
     - name: Verify resulting authorized_keys
       ansible.builtin.script: verify_ak.sh
       changed_when: false
