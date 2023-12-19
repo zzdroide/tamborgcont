@@ -1,9 +1,11 @@
 import os
 import tempfile
+from inspect import isclass
 
 import pytest
 import sh
 
+from hook import Borg
 from hook.constants import Paths
 
 
@@ -18,14 +20,28 @@ def default_state():
 
 
 @pytest.fixture(autouse=True)
-def no_sh_calls(monkeypatch):
-    def prevent_call(*args, **kwargs):
-        raise Exception('Prevented sh call')
-    monkeypatch.setattr(sh.RunningCommand, '__init__', prevent_call)
-
-
-@pytest.fixture(autouse=True)
 def no_local_config(monkeypatch):
     def prevent_call(*args, **kwargs):
         raise Exception('Prevented local config usage')
     monkeypatch.setattr('hook.config.get_config', prevent_call)
+
+
+class PreventSh:
+    def __getattr__(self, name):
+        try:
+            attr = getattr(sh, name)
+        except sh.CommandNotFound:
+            attr = None
+
+        if isclass(attr) and issubclass(attr, Exception):
+            return attr
+        else:
+            return self
+
+    def __call__(self, *args):
+        raise Exception('Prevented sh call')
+
+
+@pytest.fixture(autouse=True)
+def no_sh_calls(monkeypatch):
+    monkeypatch.setattr(Borg, 'sh', PreventSh())
