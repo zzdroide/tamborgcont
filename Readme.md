@@ -28,7 +28,7 @@ molecule test
 
 - Install Debian bookworm, include OpenSSH server. Set a strong password because SSH PasswordAuthentication defaults to yes.
 - Set static IP (preferably at the router, against MAC)
-- `ssh-copy-id`, set `PasswordAuthentication no` in /etc/ssh/sshd_config, `sudo systemctl restart ssh`
+- `ssh-copy-id`
 
 And from local, deploy to server with:
 ```sh
