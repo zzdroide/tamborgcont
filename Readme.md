@@ -26,7 +26,9 @@ molecule test
 
 ## Server setup
 
-- Install Debian bookworm, include OpenSSH server. Set a strong password because SSH PasswordAuthentication defaults to yes.
+- Install Debian bookworm
+  - with a strong password because SSH PasswordAuthentication defaults to yes
+  - with "SSH server" and "standard system utilities" software
 - Set static IP (preferably at the router, against MAC)
 - `ssh-copy-id`
 
