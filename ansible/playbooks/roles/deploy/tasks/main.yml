@@ -108,3 +108,5 @@
   vars:
     ansible_become: true
     ansible_become_user: borg
+
+# TODO: https://autosuspend.readthedocs.io/
