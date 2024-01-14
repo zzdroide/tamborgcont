@@ -1,4 +1,4 @@
-- name: Rewrite authorized_keys from config.ini
+- name: Rewrite authorized_keys from config.yml
   hosts: localhost
   connection: local
   vars:

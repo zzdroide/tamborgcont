@@ -5,7 +5,7 @@
 sudo add-apt-repository ppa:deadsnakes/ppa && sudo apt update && sudo apt install python3.12
 pipx install poetry~=1.7.1
 poetry install
-./install_galaxy_reqs.sh
+ansible/install_galaxy_reqs.sh
 
 cp config.example.yml config.yml
 nano config.yml
@@ -36,4 +36,26 @@ And from local, deploy to server with:
 ```sh
 cd ansible
 ANSIBLE_PIPELINING=True poetry run ansible-playbook -i t@192.168.0.63, -l t@192.168.0.63 --ask-become-pass playbooks/deploy.yml
+```
+
+Some manual interactive setup after it finishes:
+```sh
+# In server:
+sudo su - borg
+
+# Either create a new repo:
+borg rcreate --encryption=repokey-blake2-chacha20-poly1305
+borg key export -  # Send the key to an email to self
+
+# Or restore it to $HOME/TAM.
+
+cd ~
+git clone git@github.com:zzdroide/tamborgcont.git
+cd tamborgcont
+poetry install
+ansible/install_galaxy_reqs.sh
+
+cp config.example.yml config.yml
+nano config.yml
+poetry run ./update_authorized_keys.sh
 ```

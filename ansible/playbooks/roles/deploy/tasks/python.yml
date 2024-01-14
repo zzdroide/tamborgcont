@@ -10,3 +10,12 @@
     - name: borgbackup
       source: borgbackup[pyfuse3]==2.0.0b7
       python: python3.12
+
+- name: Save Borg vars
+  ansible.builtin.lineinfile:
+    path: ~/.zprofile
+    regexp: ^export BORG_REPO=
+    line: export BORG_REPO="$HOME/TAM"
+    state: present
+    create: true
+    mode: "0644"
