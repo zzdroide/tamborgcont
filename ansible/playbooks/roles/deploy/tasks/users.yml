@@ -23,10 +23,12 @@
     ssh_key_type: ed25519
   become: true
 
-- name: Add admin user to borg group, and set zsh shell
+- name: Add admin user to groups, and set zsh shell
   ansible.builtin.user:
     name: "{{ ansible_user_id }}"
-    groups: borg
+    groups:
+      - adm
+      - borg
     append: true
     shell: /bin/zsh
   become: true
