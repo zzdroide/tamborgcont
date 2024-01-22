@@ -55,7 +55,11 @@ cd tamborgcont
 poetry install
 ansible/install_galaxy_reqs.sh
 
+nano ~/.zprofile  # Add "export BORG_PASSPHRASE=<pass>"
+
 cp config.example.yml config.yml
 nano config.yml
-poetry run ./update_authorized_keys.sh
+./update_authorized_keys.sh
+
+touch state/repo_is_ok
 ```

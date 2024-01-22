@@ -18,6 +18,6 @@
     path: "{{ update_ak__file }}"
   loop: "{{ (lookup('file', update_ak__config) | from_yaml).users }}"
   vars:
-    command: "{{ ssh_command_hook }} && {{ borg_serve }}"
+    command: zsh -l -c '{{ ssh_command_hook }} && {{ borg_serve }}'
     ssh_command_hook: /home/borg/tamborgcont/hook.sh ssh_command {{ item.user }}
     borg_serve: borg serve --append-only --restrict-to-repository /home/borg/TAM
