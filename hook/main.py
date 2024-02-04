@@ -12,27 +12,33 @@ from .utils import getidx, mkfile
 
 
 def check_repo():
-    with (
-        open(Paths.lock_user, 'r') as f_user,
-        open(Paths.lock_prev_arcs, 'r') as f_pa,
-    ):
-        user_prefix = f_user.read() + '-'
-        prev_arcs = f_pa.read()
-        cur_arcs = Borg.dump_arcs()
+    try:
+        with (
+            open(Paths.lock_user, 'r') as f_user,
+            open(Paths.lock_prev_arcs, 'r') as f_pa,
+        ):
+            user_prefix = f_user.read() + '-'
+            prev_arcs = f_pa.read()
+            cur_arcs = Borg.dump_arcs()
 
-        # Check that previous archives are intact
-        if not cur_arcs.startswith(prev_arcs):
-            return False, 'Previous archives were modified!'
+            # Check that previous archives are intact
+            if not cur_arcs.startswith(prev_arcs):
+                return False, 'Previous archives were modified!'
 
-        # Check that new archives begin with user_prefix
-        new_arcs = cur_arcs.replace(prev_arcs, '', 1)
-        while new_arcs:
-            arc_id, sep, new_arcs = new_arcs.partition('\x00')
-            arc_name, sep, new_arcs = new_arcs.partition('\x00')
-            if not arc_name.startswith(user_prefix):
-                return False, f"Created [{arc_name}] that doesn't start with [{user_prefix}]!"
+            # Check that new archives begin with user_prefix
+            new_arcs = cur_arcs.replace(prev_arcs, '', 1)
+            while new_arcs:
+                arc_id, sep, new_arcs = new_arcs.partition('\x00')
+                arc_name, sep, new_arcs = new_arcs.partition('\x00')
+                if not arc_name.startswith(user_prefix):
+                    return False, f"Created [{arc_name}] that doesn't start with [{user_prefix}]!"
 
-    return True, None
+        return True, None
+
+    except FileNotFoundError:
+        # We are at release_lock(). Assume that fill_lock() wasn't called.
+        # Anyway, with any of the two files missing we can't check the repo.
+        return True, None
 
 
 def get_repo_locked_msg():
@@ -145,6 +151,3 @@ def main(argv):
 
 if __name__ == '__main__':
     main(sys.argv)
-
-
-# TODO: ssh -N
