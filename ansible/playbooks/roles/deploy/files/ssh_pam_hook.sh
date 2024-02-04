@@ -1,21 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
-debug=0
-
-if [[ "$debug" == "1" ]]; then
-  {
-    date
-    echo
-    printenv | sort
-    echo
-    echo
-  } >> /tmp/ssh_pam_hook.txt
-fi
-
 if [[ "$PAM_USER" == "borg" ]]; then
   if [[ "$PAM_TYPE" == "open_session" && "$PAM_SERVICE" != "hpnsshd" ]]; then
-    # Prevent connecting without None cipher
+    # Prevent accidental connections without None cipher
     echo "Please use hpnssh."
     exit 1
   fi
