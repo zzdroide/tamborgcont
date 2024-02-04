@@ -3,6 +3,8 @@ from pathlib import Path
 import shutil
 import sys
 
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
+
 from . import Borg
 from .config import does_user_exist
 from .constants import Paths, RC
@@ -46,9 +48,24 @@ def get_repo_locked_msg():
     return f'Repo is locked by user {user} from {ip}'
 
 
+@retry(
+    retry=retry_if_exception_type(FileNotFoundError),
+    wait=wait_fixed(1),
+    stop=stop_after_attempt(4),
+    reraise=True,
+)
+def remove_repo_is_ok():
+    '''
+    When two ssh commands are executed consecutively,
+    the first close_session is executed about 0.5s after the second open_session.
+    So retry for 3s instead of failing immediately.
+    '''
+    os.remove(Paths.repo_is_ok)
+
+
 def acquire_lock():
     try:
-        os.remove(Paths.repo_is_ok)
+        remove_repo_is_ok()
     except FileNotFoundError:
         print('Repo is NOT OK')
         sys.exit(RC.access_denied)
@@ -83,8 +100,8 @@ def release_lock():
     ok, errmsg = check_repo()
 
     if ok:
-        mkfile(Paths.repo_is_ok)
         shutil.rmtree(Paths.lock)
+        mkfile(Paths.repo_is_ok)
     else:
         print(errmsg)
         sys.exit(RC.generic_error)
@@ -128,3 +145,6 @@ def main(argv):
 
 if __name__ == '__main__':
     main(sys.argv)
+
+
+# TODO: ssh -N

@@ -1,9 +1,10 @@
 import os
 
 import pytest
+from tenacity import wait_none
 
 from hook.constants import RC, Paths
-from hook.main import main
+from hook import main
 from hook.utils import mkfile
 
 
@@ -12,6 +13,10 @@ class TestAcquireLock:
     def set_pam_vars(self, monkeypatch):
         monkeypatch.setenv('PAM_TYPE', 'open_session')
         monkeypatch.setenv('PAM_RHOST', '192.168.0.100')
+
+    @pytest.fixture(autouse=True)
+    def tenacity_zero_wait(self, monkeypatch):
+        monkeypatch.setattr(main.remove_repo_is_ok.retry, 'wait', wait_none())
 
     @pytest.fixture()
     def borg_repo_locked(self, monkeypatch):
@@ -22,7 +27,7 @@ class TestAcquireLock:
         monkeypatch.setattr('hook.Borg.is_repo_unlocked', lambda: True)
 
     def run_main(self):
-        main(['main.py', 'pam'])
+        main.main(['main.py', 'pam'])
 
     def test_deny_on_reponok(self):
         assert not os.path.isfile(Paths.repo_is_ok)
