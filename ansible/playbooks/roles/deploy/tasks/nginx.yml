@@ -1,0 +1,43 @@
+- name: Make nginx start only after hpnssh
+  ansible.builtin.copy:
+    src: files/nginx.service.d
+    dest: /etc/systemd/system/
+    owner: root
+    group: root
+    mode: "0644"
+    force: true  # Replace on changes
+  become: true
+  register: override_copy
+
+- name: Install over default site
+  ansible.builtin.copy:
+    src: files/nginx_site
+    dest: /etc/nginx/sites-enabled/default
+    owner: root
+    group: root
+    mode: "0644"
+    force: true  # Replace on changes
+  become: true
+  register: site_copy
+
+- name: Reload nginx
+  ansible.builtin.systemd_service:
+    daemon_reload: "{{ override_copy.changed }}"
+    name: nginx
+    state: reloaded
+  when: site_copy.changed
+  become: true
+
+- name: Give borg user write access
+  ansible.builtin.file:
+    path: /var/www/html
+    owner: borg
+    group: borg
+    mode: "0775"
+  become: true
+
+- name: Delete default index html
+  ansible.builtin.file:
+    path: /var/www/html/index.nginx-debian.html
+    state: absent
+  become: true

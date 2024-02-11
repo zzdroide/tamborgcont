@@ -30,6 +30,12 @@
       ansible.builtin.script: verify_ssh.sh
       changed_when: true  # hook.sh
 
+    - name: Verify nginx
+      ansible.builtin.uri:
+        url: http://localhost/
+        status_code: 204
+        timeout: 2
+
     - name: Verify Borg binary
       become: true
       become_user: borg

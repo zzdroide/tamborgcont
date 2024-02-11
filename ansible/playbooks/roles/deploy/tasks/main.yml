@@ -53,6 +53,9 @@
       # Check Wake-on-LAN
       - ethtool
 
+      # Serve public info
+      - nginx
+
       # pipx and Poetry with python3.12
       - pipx
       - python3-pip
@@ -102,6 +105,9 @@
 
 - name: Setup hook
   ansible.builtin.import_tasks: hook.yml
+
+- name: Setup nginx
+  ansible.builtin.import_tasks: nginx.yml
 
 - name: Install Python packages
   ansible.builtin.import_tasks: python.yml
