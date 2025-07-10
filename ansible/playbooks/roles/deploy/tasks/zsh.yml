@@ -3,7 +3,7 @@
     clone: true
     repo: https://github.com/zzdroide/omz
     dest: /usr/share/omz
-    version: 63f28b2c8a955e7b4cdf8f42097028136e76699d
+    version: 0fe412b50a6c7492e829c3c04ca9cbaade82406e
   become: true
 
 - name: Setup .zshrc
