@@ -44,8 +44,8 @@ Some manual interactive setup after it finishes:
 sudo su - borg
 
 # Either create a new repo:
-borg rcreate --encryption=repokey-blake2-chacha20-poly1305
-borg key export -  # Send the key to an email to self
+borg init --encryption=repokey
+borg key export  # Send the key to an email to self
 
 # Or restore it to $HOME/TAM.
 

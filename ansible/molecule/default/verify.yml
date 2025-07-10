@@ -42,4 +42,4 @@
       ansible.builtin.command: /home/borg/.local/bin/borg --version
       changed_when: false
       register: borg_version
-      failed_when: borg_version.stdout != 'borg 2.0.0b7'
+      failed_when: not borg_version.stdout.startswith('borg 1.')

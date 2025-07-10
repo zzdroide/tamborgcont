@@ -10,9 +10,9 @@ def is_repo_unlocked():
 
 
 def dump_arcs():
-    return sh.borg.rlist(
-        # Separates with {NUL} ('\x00') because it was the only forbidden character
-        # in archive names.
-        format='{id}{NUL}{archive}{NUL}',
-        consider_checkpoints=True,
+    return sh.borg.list(
+            # Separates with {NUL} ('\x00') because it's the only forbidden character
+            # in archive names.
+            format='{id}{NUL}{barchive}{NUL}',
+            consider_checkpoints=True,
     )

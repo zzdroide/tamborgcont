@@ -69,18 +69,16 @@
       - autoconf
       - libpam0g-dev
 
-      # To build Borg  https://borgbackup.readthedocs.io/en/2.0.0b7/installation.html#debian-ubuntu
+      # To build Borg  https://borgbackup.readthedocs.io/en/stable/installation.html#debian-ubuntu
       - python3.12
       - python3.12-dev
       - libacl1-dev
-      - libacl1
       - libssl-dev
       - liblz4-dev
       - libzstd-dev
       - libxxhash-dev
       - build-essential
       - pkg-config
-      - python3-pkgconfig
       - libfuse3-dev
       - fuse3
     state: present
