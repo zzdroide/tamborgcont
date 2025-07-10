@@ -1,3 +1,11 @@
+- name: Add PAM hook script
+  ansible.builtin.copy:
+    src: files/ssh_pam_hook.sh
+    dest: /usr/local/lib/ssh_pam_hook.sh
+    force: false  # Don't overwrite existing
+    mode: "0744"
+  become: true
+
 - name: Disable MOTD in PAM
   ansible.builtin.replace:
     path: /etc/pam.d/sshd
@@ -29,12 +37,4 @@
     state: link
     src: /etc/pam.d/sshd
     dest: /etc/pam.d/hpnsshd
-  become: true
-
-- name: Add PAM hook script
-  ansible.builtin.copy:
-    src: files/ssh_pam_hook.sh
-    dest: /usr/local/lib/ssh_pam_hook.sh
-    force: false  # Don't overwrite existing
-    mode: "0744"
   become: true
