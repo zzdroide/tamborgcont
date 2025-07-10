@@ -1,23 +1,31 @@
-- name: Prevent destroying authorized_keys of development computer
+- name: Check for existance of authorized_keys.old
   ansible.builtin.stat:
-    path: ~/.ssh/yes-this-is-borg-repo-server-user
-  register: flag_file
-  failed_when: not flag_file.stat.exists
+    path: ~/.ssh/authorized_keys.old
+  register: old_file
 
-- name: Move current authorized_keys to backup file
-  ansible.builtin.command:
-    cmd: mv {{ update_ak__file }} ~/.ssh/authorized_keys.old
-    removes: "{{ update_ak__file }}"  # Skips mv if doesn't exist
+- name: Update authorized_keys if authorized_keys.old doesn't exist
+  when: not old_file.stat.exists
+  block:
+    - name: Prevent destroying authorized_keys of development computer
+      ansible.builtin.stat:
+        path: ~/.ssh/yes-this-is-borg-repo-server-user
+      register: flag_file
+      failed_when: not flag_file.stat.exists
 
-- name: Set authorized keys
-  ansible.posix.authorized_key:
-    key_options: command="{{ command }}",restrict
-    key: "{{ item.pubkey }}"
-    comment: "{{ item.user }}"
-    user: "{{ ansible_user_id }}"
-    path: "{{ update_ak__file }}"
-  loop: "{{ (lookup('file', update_ak__config) | from_yaml).users }}"
-  vars:
-    command: zsh -l -c '{{ ssh_command_hook }} && {{ borg_serve }}'
-    ssh_command_hook: /home/borg/tamborgcont/hook.sh ssh_command {{ item.user }}
-    borg_serve: borg serve --append-only --restrict-to-repository /home/borg/TAM
+    - name: Move current authorized_keys to backup file
+      ansible.builtin.command:
+        cmd: mv {{ update_ak__file }} ~/.ssh/authorized_keys.old
+        removes: "{{ update_ak__file }}"  # Skips mv if doesn't exist
+
+    - name: Set authorized keys
+      ansible.posix.authorized_key:
+        key_options: command="{{ command }}",restrict
+        key: "{{ item.pubkey }}"
+        comment: "{{ item.user }}"
+        user: "{{ ansible_user_id }}"
+        path: "{{ update_ak__file }}"
+      loop: "{{ (lookup('file', update_ak__config) | from_yaml).users }}"
+      vars:
+        command: zsh -l -c '{{ ssh_command_hook }} && {{ borg_serve }}'
+        ssh_command_hook: /home/borg/tamborgcont/hook.sh ssh_command {{ item.user }}
+        borg_serve: borg serve --append-only --restrict-to-repository /home/borg/TAM
