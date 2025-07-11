@@ -1,23 +1,25 @@
-#	$OpenBSD: sshd_config,v 1.104 2021/07/02 05:11:21 dtucker Exp $
+#	$OpenBSD: sshd_config,v 1.105 2024/12/03 14:12:47 dtucker Exp $
 
 # This is the sshd server system-wide configuration file.  See
 # sshd_config(5) for more information.
 
-# This sshd was compiled with PATH=/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin
+# This sshd was compiled with PATH=/usr/bin:/bin:/usr/sbin:/sbin
 
 # The strategy used for options in the default sshd_config shipped with
 # OpenSSH is to specify options with their default value where
 # possible, but leave them commented.  Uncommented options override the
 # default value.
 
+Include /etc/hpnssh/sshd_config.d/*.conf
+
 Port 2222
 #AddressFamily any
 #ListenAddress 0.0.0.0
 #ListenAddress ::
 
-#HostKey /usr/local/etc/hpnssh/ssh_host_rsa_key
-#HostKey /usr/local/etc/hpnssh/ssh_host_ecdsa_key
-#HostKey /usr/local/etc/hpnssh/ssh_host_ed25519_key
+#HostKey /etc/hpnssh/ssh_host_rsa_key
+#HostKey /etc/hpnssh/ssh_host_ecdsa_key
+#HostKey /etc/hpnssh/ssh_host_ed25519_key
 
 # Ciphers and keying
 #RekeyLimit default none
@@ -36,9 +38,8 @@ Port 2222
 
 #PubkeyAuthentication yes
 
-# The default is to check both .ssh/authorized_keys and .ssh/authorized_keys2
-# but this is overridden so installations will only check .ssh/authorized_keys
-AuthorizedKeysFile	.ssh/authorized_keys
+# Expect .ssh/authorized_keys2 to be disregarded by default in future.
+#AuthorizedKeysFile	.ssh/authorized_keys .ssh/authorized_keys2
 
 #AuthorizedPrincipalsFile none
 
@@ -53,12 +54,14 @@ AuthorizedKeysFile	.ssh/authorized_keys
 # Don't read the user's ~/.rhosts and ~/.shosts files
 #IgnoreRhosts yes
 
-# To disable tunneled clear text passwords, change to no here!
+# To disable tunneled clear text passwords, change to "no" here!
 PasswordAuthentication no
 #PermitEmptyPasswords no
 
-# Change to no to disable s/key passwords
-#KbdInteractiveAuthentication yes
+# Change to "no" to disable keyboard-interactive authentication.  Depending on
+# the system's configuration, this may involve passwords, challenge-response,
+# one-time passwords or some combination of these and other methods.
+KbdInteractiveAuthentication no
 
 # Kerberos options
 #KerberosAuthentication no
@@ -69,6 +72,8 @@ PasswordAuthentication no
 # GSSAPI options
 #GSSAPIAuthentication no
 #GSSAPICleanupCredentials yes
+#GSSAPIStrictAcceptorCheck yes
+#GSSAPIKeyExchange no
 
 # Set this to 'yes' to enable PAM authentication, account processing,
 # and session processing. If this is enabled, PAM authentication will
@@ -83,8 +88,8 @@ UsePAM yes
 
 #AllowAgentForwarding yes
 #AllowTcpForwarding yes
-#GatewayPorts no
-#X11Forwarding no
+GatewayPorts yes
+X11Forwarding yes
 #X11DisplayOffset 10
 #X11UseLocalhost yes
 #PermitTTY yes
@@ -101,6 +106,7 @@ ClientAliveCountMax 2
 #PermitTunnel no
 #ChrootDirectory none
 #VersionAddendum none
+#UseMPTCP no
 
 # no default banner path
 #Banner none
@@ -109,7 +115,7 @@ ClientAliveCountMax 2
 AcceptEnv LANG LC_*
 
 # override default of no subsystems
-Subsystem	sftp	/usr/local/libexec/hpnsftp-server
+Subsystem	sftp	/usr/lib/openssh/hpnsftp-server
 
 # the following are HPN related configuration options
 # tcp receive buffer polling. disable in non autotuning kernels
@@ -123,11 +129,6 @@ NoneEnabled yes
 
 # allow the use of the none MAC
 #NoneMacEnabled no
-
-# clamp the server's receive buffer to
-# 1/2 the tcp receive window. This may be useful
-# in some environments.
-#HPNBufferLimit no
 
 # Example of overriding settings on a per-user basis
 #Match User anoncvs

@@ -37,4 +37,5 @@
     state: link
     src: /etc/pam.d/sshd
     dest: /etc/pam.d/hpnsshd
+    force: true
   become: true

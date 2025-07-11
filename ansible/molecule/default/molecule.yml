@@ -10,7 +10,7 @@ driver:
 platforms:
   - name: instance
     box: debian/bookworm64
-    memory: 768 # MB
+    memory: 512 # MB
     cpus: 1
 
 provisioner:

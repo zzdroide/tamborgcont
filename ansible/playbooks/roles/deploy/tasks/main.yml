@@ -26,16 +26,21 @@
     mode: "0644"
   become: true
 
-- name: Add deadsnakes PPA
+- name: Add PPAs
   ansible.builtin.apt_repository:
-    repo: ppa:deadsnakes/ppa
+    repo: "{{ item }}"
     codename: jammy   # https://askubuntu.com/questions/445487/what-debian-version-are-the-different-ubuntu-versions-based-on/445496#445496
     state: present
+  loop:
+    - ppa:deadsnakes/ppa
+    - ppa:rapier1/hpnssh
   become: true
 
 - name: Install packages
   ansible.builtin.apt:
     name:
+      - hpnssh
+
       # Basic utilities
       - curl
       - htop
@@ -60,13 +65,6 @@
       - python3-pip
       - python3-venv
       - python3.12
-
-      # To compile hpn-ssh  https://github.com/rapier1/hpn-ssh/blob/18.2.0/HPNSSHInstallation.txt#L18
-      - build-essential
-      - libssl-dev
-      - zlib1g-dev
-      - autoconf
-      - libpam0g-dev
 
       # To build Borg  https://borgbackup.readthedocs.io/en/stable/installation.html#debian-ubuntu
       - python3.12
