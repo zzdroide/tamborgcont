@@ -31,7 +31,6 @@
     repo: ppa:deadsnakes/ppa
     codename: jammy   # https://askubuntu.com/questions/445487/what-debian-version-are-the-different-ubuntu-versions-based-on/445496#445496
     state: present
-    update_cache: true
   become: true
 
 - name: Install packages
