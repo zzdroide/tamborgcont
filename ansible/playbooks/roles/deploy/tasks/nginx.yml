@@ -19,7 +19,7 @@
   register: site_copy
 
 - name: Reload nginx
-  ansible.builtin.systemd_service:
+  ansible.builtin.systemd:
     daemon_reload: "{{ override_copy.changed }}"
     name: nginx
     state: reloaded

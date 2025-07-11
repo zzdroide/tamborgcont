@@ -1,0 +1,12 @@
+[Unit]
+Description=Borg daily routine
+Wants=borg-daily.timer
+
+[Service]
+Type=exec
+User=borg
+Group=borg
+ExecStart=echo TODO
+
+[Install]
+WantedBy=multi-user.target

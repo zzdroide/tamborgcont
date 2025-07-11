@@ -1,0 +1,29 @@
+- name: Copy files
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    force: false  # Don't overwrite existing
+    owner: root
+    group: root
+    mode: "0644"
+  loop:
+    - src: files/autosuspend.conf
+      dest: /opt/pipx/venvs/autosuspend/etc/autosuspend.conf
+    - src: files/autosuspend.service
+      dest: /etc/systemd/system/autosuspend.service
+    - src: files/autosuspend-detect-suspend.service
+      dest: /etc/systemd/system/autosuspend-detect-suspend.service
+    - src: files/borg-daily.service
+      dest: /etc/systemd/system/borg-daily.service
+    - src: files/borg-daily.timer
+      dest: /etc/systemd/system/borg-daily.timer
+
+- name: Enable and start services
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: started
+    enabled: true
+  loop:
+    - autosuspend.service
+    - autosuspend-detect-suspend.service
+    - borg-daily.timer

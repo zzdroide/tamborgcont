@@ -43,3 +43,11 @@
       changed_when: false
       register: borg_version
       failed_when: not borg_version.stdout.startswith('borg 1.')
+
+    - name: Verify autosuspend and borg-daily are enabled
+      ansible.builtin.shell: |
+        set -e
+        systemctl is-enabled autosuspend.service
+        systemctl is-enabled autosuspend-detect-suspend.service
+        systemctl is-enabled borg-daily.timer
+      changed_when: false
