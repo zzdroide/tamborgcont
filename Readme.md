@@ -52,7 +52,7 @@ borg key export  # Send the key to an email to self
 cd ~
 git clone git@github.com:zzdroide/tamborgcont.git
 cd tamborgcont
-poetry install
+poetry sync --without=dev
 
 nano ~/.zprofile  # Add "export BORG_PASSPHRASE=<pass>"
 
