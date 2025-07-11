@@ -2,10 +2,10 @@
 
 ## Local setup
 ```sh
-sudo add-apt-repository ppa:deadsnakes/ppa && sudo apt update && sudo apt install python3.12
-pipx install poetry~=1.7.1
-poetry install
-ansible/install_galaxy_reqs.sh
+sudo add-apt-repository ppa:deadsnakes/ppa && sudo apt update && sudo apt install python3.13
+pipx install poetry
+poetry env use python3.13
+poetry sync
 
 cp config.example.yml config.yml
 nano config.yml
@@ -16,7 +16,7 @@ nano config.yml
 Requires [VirtualBox](https://www.virtualbox.org/wiki/Linux_Downloads#Debian-basedLinuxdistributions) and [Vagrant](https://developer.hashicorp.com/vagrant/install?product_intent=vagrant#Linux) installed.
 
 ```sh
-poetry shell
+eval $(poetry env activate)   # poetry shell
 
 pytest
 
@@ -35,7 +35,7 @@ molecule test
 And from local, deploy to server with:
 ```sh
 cd ansible
-ANSIBLE_PIPELINING=True poetry run ansible-playbook -i t@192.168.0.63, -l t@192.168.0.63 --ask-become-pass playbooks/deploy.yml
+ANSIBLE_PIPELINING=True ANSIBLE_CALLBACK_RESULT_FORMAT=yaml poetry run ansible-playbook -i t@192.168.0.63, -l t@192.168.0.63 --ask-become-pass playbooks/deploy.yml
 ```
 
 Some manual interactive setup after it finishes:
@@ -53,7 +53,6 @@ cd ~
 git clone git@github.com:zzdroide/tamborgcont.git
 cd tamborgcont
 poetry install
-ansible/install_galaxy_reqs.sh
 
 nano ~/.zprofile  # Add "export BORG_PASSPHRASE=<pass>"
 

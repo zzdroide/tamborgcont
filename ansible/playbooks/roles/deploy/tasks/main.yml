@@ -55,11 +55,11 @@
       # Serve public info
       - nginx
 
-      # pipx and Poetry with python3.12
-      - pipx
+      # pipx and Poetry with python3.13
+      # (future: Debian Trixie: remove deadsnakes, install pipx with apt)
       - python3-pip
       - python3-venv
-      - python3.12
+      - python3.13
 
       # To compile hpn-ssh  https://github.com/rapier1/hpn-ssh/blob/hpn-18.7.0/HPNSSHInstallation.txt#L18
       - build-essential
@@ -69,8 +69,8 @@
       - libpam0g-dev
 
       # To build Borg  https://borgbackup.readthedocs.io/en/stable/installation.html#debian-ubuntu
-      - python3.12
-      - python3.12-dev
+      - python3.13
+      - python3.13-dev
       - libacl1-dev
       - libssl-dev
       - liblz4-dev

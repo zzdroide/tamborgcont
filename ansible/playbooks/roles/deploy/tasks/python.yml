@@ -1,3 +1,9 @@
+- name: Install latest pipx
+  ansible.builtin.pip:
+    name: pipx
+    state: present
+    break_system_packages: true
+
 - name: Install packages with pipx
   community.general.pipx:
     name: "{{ item.name }}"
@@ -6,10 +12,10 @@
     python: "{{ item.python | default(omit) }}"
   loop:
     - name: poetry
-      source: poetry~=1.7.1
+      source: poetry
     - name: borgbackup
       source: borgbackup[pyfuse3]
-      python: python3.12
+      python: python3.13
       # Note: there's a PPA, but it doesn't work with Debian.
 
 - name: Save Borg vars

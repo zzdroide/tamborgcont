@@ -5,4 +5,4 @@ collections:
 roles:
   - name: robertdebock.locale
     src: https://github.com/robertdebock/ansible-role-locale
-    version: aca6892c917998da24747a089f739260de18fbb3 # 3.3.9
+    version: 58c23c86f90d888647cb3938bdd92e0634f931ef # 3.3.10

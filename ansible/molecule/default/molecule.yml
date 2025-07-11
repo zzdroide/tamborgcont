@@ -18,7 +18,7 @@ provisioner:
 
   config_options:
     defaults:
-      stdout_callback: yaml   # human-readable output
+      result_format: yaml   # Readable and correct
     ssh_connection:
       pipelining: true
 
