@@ -56,7 +56,7 @@
       - nginx
 
       # pipx and Poetry with python3.13
-      # (future: Debian Trixie: remove deadsnakes, install pipx with apt)
+      # Future, trixie: remove deadsnakes, install pipx with apt
       - python3-pip
       - python3-venv
       - python3.13
@@ -118,6 +118,8 @@
   ansible.builtin.import_tasks: python.yml
   vars:
     ansible_become: true
-    ansible_become_user: borg
 
-# TODO: https://autosuspend.readthedocs.io/
+- name: Setup autosuspend
+  ansible.builtin.import_tasks: autosuspend.yml
+  vars:
+    ansible_become: true
