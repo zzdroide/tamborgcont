@@ -6,7 +6,6 @@
     group: root
     mode: "0644"
     force: true  # Replace on changes
-  become: true
   register: override_copy
 
 - name: Install over default site
@@ -17,7 +16,6 @@
     group: root
     mode: "0644"
     force: true  # Replace on changes
-  become: true
   register: site_copy
 
 - name: Reload nginx
@@ -26,7 +24,6 @@
     name: nginx
     state: reloaded
   when: site_copy.changed
-  become: true
 
 - name: Give borg user write access
   ansible.builtin.file:
@@ -34,10 +31,8 @@
     owner: borg
     group: borg
     mode: "0775"
-  become: true
 
 - name: Delete default index html
   ansible.builtin.file:
     path: /var/www/html/index.nginx-debian.html
     state: absent
-  become: true

@@ -93,18 +93,26 @@
 
 - name: Setup users
   ansible.builtin.import_tasks: users.yml
+  vars:
+    ansible_become: true
 
 - name: Setup zsh
   ansible.builtin.import_tasks: zsh.yml
+  vars:
+    ansible_become: true
 
 - name: Setup hpn-ssh
   ansible.builtin.import_tasks: hpnssh.yml
 
 - name: Setup hook
   ansible.builtin.import_tasks: hook.yml
+  vars:
+    ansible_become: true
 
 - name: Setup nginx
   ansible.builtin.import_tasks: nginx.yml
+  vars:
+    ansible_become: true
 
 - name: Install Python packages
   ansible.builtin.import_tasks: python.yml

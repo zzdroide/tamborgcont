@@ -3,13 +3,11 @@
     dest: /etc/sudoers.d/nopasswd
     content: "%sudo ALL=(ALL:ALL) NOPASSWD:ALL\n"
     mode: "0440"
-  become: true
 
 - name: Add group for borg user
   ansible.builtin.group:
     name: borg
     state: present
-  become: true
 
 - name: Add borg user
   ansible.builtin.user:
@@ -21,7 +19,6 @@
 
     generate_ssh_key: true
     ssh_key_type: ed25519
-  become: true
 
 - name: Add admin user to groups, and set zsh shell
   ansible.builtin.user:
@@ -31,7 +28,6 @@
       - borg
     append: true
     shell: /bin/zsh
-  become: true
 
 - name: Add ssh AK flag to borg user
   ansible.builtin.file:
@@ -40,4 +36,3 @@
     owner: borg
     group: borg
     mode: "0644"
-  become: true

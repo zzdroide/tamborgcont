@@ -4,7 +4,6 @@
     repo: https://github.com/zzdroide/omz
     dest: /usr/share/omz
     version: 0fe412b50a6c7492e829c3c04ca9cbaade82406e
-  become: true
 
 - name: Setup .zshrc
   # https://ericsysmin.com/2019/06/20/how-to-loop-blocks-of-code-in-ansible/
