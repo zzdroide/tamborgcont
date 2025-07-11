@@ -1,17 +1,19 @@
 # References:
-# https://github.com/rapier1/hpn-ssh/tree/18.2.0#building-from-git
-# https://github.com/rapier1/hpn-ssh/blob/18.2.0/HPNSSHInstallation.txt
+# https://github.com/rapier1/hpn-ssh/tree/hpn-18.7.0#building-from-git
+# https://github.com/rapier1/hpn-ssh/blob/hpn-18.7.0/HPNSSHInstallation.txt
 
-# Note: now there's a PPA (https://launchpad.net/~rapier1/+archive/ubuntu/hpnssh)
-# but it's currently failing with "cannot access '/run/hppnsshd': No such file or directory",
-# so I'll keep building from git for now.
+# Note: there's a PPA (https://launchpad.net/~rapier1/+archive/ubuntu/hpnssh)
+# but in two attempts it has failed me with:
+# - "cannot access '/run/hppnsshd': No such file or directory"
+# - "debug1: mm_reap: preauth child exited with status 255"
+# so keep building from git. There's a WIP branch "feat/hpnssh_ppa".
 
 - name: Clone repo
   ansible.builtin.git:
     clone: true
     repo: https://github.com/rapier1/hpn-ssh
     dest: ~/hpn-ssh
-    version: c868a3b35e1f1d4c0e811a66596312c464cc76e2  # 18.2.0
+    version: 7351c8c41bf504c1da33d4fa9778c8a8ba6435c8  # hpn-18.7.0
 
 - name: Check if already installed
   ansible.builtin.stat:

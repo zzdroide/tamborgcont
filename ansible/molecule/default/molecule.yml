@@ -11,7 +11,7 @@ platforms:
   - name: instance
     box: debian/bookworm64
     memory: 768 # MB
-    cpus: 1
+    cpus: 2
 
 provisioner:
   name: ansible

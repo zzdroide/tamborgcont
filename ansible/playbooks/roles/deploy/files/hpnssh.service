@@ -13,7 +13,7 @@ ExecReload=/bin/kill -HUP $MAINPID
 KillMode=process
 Restart=on-failure
 RestartPreventExitStatus=255
-Type=exec
+Type=notify
 RuntimeDirectory=hpnsshd
 RuntimeDirectoryMode=0755
 
