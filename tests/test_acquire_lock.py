@@ -3,8 +3,8 @@ import os
 import pytest
 from tenacity import wait_none
 
-from hook.constants import RC, Paths
 from hook import main
+from hook.constants import RC, Paths
 from hook.utils import mkfile
 
 
@@ -18,40 +18,41 @@ class TestAcquireLock:
     def tenacity_zero_wait(self, monkeypatch):
         monkeypatch.setattr(main.remove_repo_is_ok.retry, 'wait', wait_none())
 
-    @pytest.fixture()
+    @pytest.fixture
     def borg_repo_locked(self, monkeypatch):
-        monkeypatch.setattr('hook.Borg.is_repo_unlocked', lambda: False)
+        monkeypatch.setattr('hook.borg.is_repo_unlocked', lambda: False)
 
-    @pytest.fixture()
+    @pytest.fixture
     def borg_repo_unlocked(self, monkeypatch):
-        monkeypatch.setattr('hook.Borg.is_repo_unlocked', lambda: True)
+        monkeypatch.setattr('hook.borg.is_repo_unlocked', lambda: True)
 
     def run_main(self):
         main.main(['main.py', 'pam'])
 
     def test_deny_on_reponok(self):
-        assert not os.path.isfile(Paths.repo_is_ok)
+        assert not Paths.repo_is_ok.is_file()
 
         with pytest.raises(SystemExit) as e:
             self.run_main()
         assert e.value.code == RC.access_denied
 
-    def test_deny_on_locked_repo(self, borg_repo_locked):
+    @pytest.mark.usefixtures('borg_repo_locked')
+    def test_deny_on_locked_repo(self):
         with pytest.raises(SystemExit) as e:
             self.run_main()
         assert e.value.code == RC.access_denied
 
-    def test_deny_on_locked(self, borg_repo_unlocked):
-        os.mkdir(Paths.lock)
-        with open(Paths.lock_ip, 'x') as f:
-            f.write(os.environ.get('PAM_RHOST'))
+    @pytest.mark.usefixtures('borg_repo_unlocked')
+    def test_deny_on_locked(self):
+        Paths.lock.mkdir()
+        Paths.lock_ip.write_text(os.environ.get('PAM_RHOST'))
 
         with pytest.raises(SystemExit) as e:
             self.run_main()
         assert e.value.code == RC.access_denied
 
-    def test_write_ip(self, borg_repo_unlocked):
+    @pytest.mark.usefixtures('borg_repo_unlocked')
+    def test_write_ip(self):
         mkfile(Paths.repo_is_ok)
         self.run_main()
-        with open(Paths.lock_ip, 'r') as f:
-            assert f.read() == '192.168.0.100'
+        assert Paths.lock_ip.read_text() == '192.168.0.100'

@@ -1,8 +1,10 @@
+from pathlib import Path
+
 import yaml
 
 
 def get_config():
-    with open('./config.yml', 'r') as f:
+    with Path('./config.yml').open(encoding='utf-8') as f:
         return yaml.safe_load(f)
 
 

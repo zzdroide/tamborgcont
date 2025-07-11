@@ -1,39 +1,34 @@
 import os
-from pathlib import Path
 import shutil
 import sys
 
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
-from . import Borg
+from . import borg
 from .config import does_user_exist
-from .constants import Paths, RC
+from .constants import RC, Paths
 from .utils import getidx, mkfile
 
 
 def check_repo():
     try:
-        with (
-            open(Paths.lock_user, 'r') as f_user,
-            open(Paths.lock_prev_arcs, 'r') as f_pa,
-        ):
-            user_prefix = f_user.read() + '-'
-            prev_arcs = f_pa.read()
-            cur_arcs = Borg.dump_arcs()
+        user_prefix = Paths.lock_user.read_text() + '-'
+        prev_arcs = Paths.lock_prev_arcs.read_text()
+        cur_arcs = borg.dump_arcs()
 
-            # Check that previous archives are intact
-            if not cur_arcs.startswith(prev_arcs):
-                return False, 'Previous archives were modified!'
+        # Check that previous archives are intact
+        if not cur_arcs.startswith(prev_arcs):
+            return False, 'Previous archives were modified!'
 
-            # Check that new archives begin with user_prefix
-            new_arcs = cur_arcs.replace(prev_arcs, '', 1)
-            while new_arcs:
-                arc_id, sep, new_arcs = new_arcs.partition('\x00')
-                arc_name, sep, new_arcs = new_arcs.partition('\x00')
-                if not arc_name.startswith(user_prefix):
-                    return False, f"Created [{arc_name}] that doesn't start with [{user_prefix}]!"
+        # Check that new archives begin with user_prefix
+        new_arcs = cur_arcs.replace(prev_arcs, '', 1)
+        while new_arcs:
+            _arc_id, _sep, new_arcs = new_arcs.partition('\x00')
+            arc_name, _sep, new_arcs = new_arcs.partition('\x00')
+            if not arc_name.startswith(user_prefix):
+                return False, f"Created [{arc_name}] that doesn't start with [{user_prefix}]!"
 
-        return True, None
+        return True, None  # noqa: TRY300
 
     except FileNotFoundError:
         # We are at release_lock(). Assume that fill_lock() wasn't called.
@@ -42,12 +37,10 @@ def check_repo():
 
 
 def get_repo_locked_msg():
-    with open(Paths.lock_ip, 'r') as f:
-        ip = f.read()
+    ip = Paths.lock_ip.read_text()
 
     try:
-        with open(Paths.lock_user, 'r') as f:
-            user = f.read()
+        user = Paths.lock_user.read_text()
     except FileNotFoundError:
         user = '<unavailable>'
 
@@ -61,12 +54,12 @@ def get_repo_locked_msg():
     reraise=True,
 )
 def remove_repo_is_ok():
-    '''
+    """
     When two ssh commands are executed consecutively,
     the first close_session is executed about 0.5s after the second open_session.
     So retry for 3s instead of failing immediately.
-    '''
-    os.remove(Paths.repo_is_ok)
+    """
+    Paths.repo_is_ok.unlink()
 
 
 def acquire_lock():
@@ -76,18 +69,17 @@ def acquire_lock():
         print('Repo is NOT OK')
         sys.exit(RC.access_denied)
 
-    if not Borg.is_repo_unlocked():
+    if not borg.is_repo_unlocked():
         print('Underlying repo is locked')
         sys.exit(RC.access_denied)
 
     try:
-        os.mkdir(Paths.lock)
+        Paths.lock.mkdir()
     except FileExistsError:
         print(get_repo_locked_msg())
         sys.exit(RC.access_denied)
 
-    with open(Paths.lock_ip, 'x') as f:
-        f.write(os.environ.get('PAM_RHOST'))
+    Paths.lock_ip.write_text(os.environ.get('PAM_RHOST'))
 
 
 def fill_lock(key_user):
@@ -95,11 +87,8 @@ def fill_lock(key_user):
         print(f'User not in config: {key_user}')
         sys.exit(RC.access_denied)
 
-    with open(Paths.lock_user, 'x') as f:
-        f.write(key_user)
-
-    with open(Paths.lock_prev_arcs, 'x') as f:
-        f.write(Borg.dump_arcs())
+    Paths.lock_user.write_text(key_user)
+    Paths.lock_prev_arcs.write_text(borg.dump_arcs())
 
 
 def release_lock():
@@ -123,7 +112,7 @@ def main(argv):
     (1) takes the lock, (2) fills it, and (3) checks and releases.
     """
 
-    Path(Paths.state).mkdir(exist_ok=True)
+    Paths.state.mkdir(exist_ok=True)
 
     hook_src = getidx(argv, 1)
     if hook_src == 'pam':

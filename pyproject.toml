@@ -15,7 +15,21 @@ flake8 = "^7.3.0"
 molecule-plugins = {extras = ["vagrant"], version = "^23.7.0"}
 ansible-lint = { version = "^25.6.1", markers = "platform_system != 'Windows'" }
 molecule = "25.1.0"
+ruff = "^0.12.3"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff.lint]
+preview = true
+select = ["F", "E", "W", "C90", "I", "N", "UP", "YTT", "ASYNC", "S", "BLE", "FBT", "B", "A", "COM", "C4", "DTZ", "T10", "DJ", "EM", "EXE", "FA", "ISC", "ICN", "LOG", "G", "INP", "PIE", "PYI", "PT", "Q", "RSE", "RET", "SLF", "SLOT", "SIM", "TID", "TC", "INT", "ARG", "PTH", "FIX", "PD", "PGH", "PL", "TRY", "FLY", "NPY", "FAST", "AIR", "PERF", "FURB", "RUF"]
+ignore = ["FIX004", "PLR09", "PLR6301", "Q002", "DTZ011", "E221", "E241", "COM812", "E501", "S104", "BLE001", "PLC0415", "TRY002"]
+
+[tool.ruff.lint.flake8-quotes]
+docstring-quotes = "single"
+inline-quotes = "single"
+multiline-quotes = "single"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]

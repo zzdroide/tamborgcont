@@ -20,7 +20,7 @@ def run_close(monkeypatch):
 
 def test_ssh_without_command(monkeypatch):
     mkfile(Paths.repo_is_ok)
-    monkeypatch.setattr('hook.Borg.is_repo_unlocked', lambda: True)
+    monkeypatch.setattr('hook.borg.is_repo_unlocked', lambda: True)
     monkeypatch.setenv('PAM_RHOST', '192.168.0.100')
 
     run_open(monkeypatch)

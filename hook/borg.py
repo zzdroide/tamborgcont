@@ -4,7 +4,7 @@ import sh
 def is_repo_unlocked():
     try:
         sh.borg('with-lock', 'true')
-        return True
+        return True  # noqa: TRY300
     except sh.ErrorReturnCode:
         return False
 

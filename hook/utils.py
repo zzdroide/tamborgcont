@@ -1,9 +1,12 @@
-def getidx(list, index, default=None):
+from pathlib import Path
+
+
+def getidx(lst, index, default=None):
     try:
-        return list[index]
+        return lst[index]
     except IndexError:
         return default
 
 
-def mkfile(file_path):
-    open(file_path, 'x').close()
+def mkfile(path: Path):
+    path.open('x').close()
