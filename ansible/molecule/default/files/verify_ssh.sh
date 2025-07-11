@@ -20,4 +20,5 @@ sudo -u borg ln -sf /bin/true /home/borg/tamborgcont/hook.sh
 hpnssh -oBatchMode=yes borg@localhost true
 
 # Test hook deny on plain ssh for borg user:
-(! ssh -oBatchMode=yes borg@localhost true)
+out=$(ssh -oBatchMode=yes borg@localhost true || true)
+[[ $out == "Please use hpnssh." ]]
