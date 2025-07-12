@@ -14,7 +14,8 @@
     repo: https://github.com/rapier1/hpn-ssh
     dest: ~/hpn-ssh
     version: 7351c8c41bf504c1da33d4fa9778c8a8ba6435c8  # hpn-18.7.0
-
+    depth: 1
+# TODO: clone to /tmp
 - name: Check if already installed
   ansible.builtin.stat:
     path: /usr/local/sbin/hpnsshd
