@@ -8,13 +8,6 @@
 # - "debug1: mm_reap: preauth child exited with status 255"
 # so keep building from git. There's a WIP branch "feat/hpnssh_ppa".
 
-- name: Clone repo
-  ansible.builtin.git:
-    clone: true
-    repo: https://github.com/rapier1/hpn-ssh
-    dest: ~/hpn-ssh
-    version: 7351c8c41bf504c1da33d4fa9778c8a8ba6435c8  # hpn-18.7.0
-
 - name: Check if already installed
   ansible.builtin.stat:
     path: /usr/local/sbin/hpnsshd
@@ -23,17 +16,31 @@
 - name: Install hpn-ssh
   when: not hpnstat.stat.exists
   block:
+    - name: Clone repo
+      ansible.builtin.git:
+        clone: true
+        repo: https://github.com/rapier1/hpn-ssh
+        dest: /tmp/hpn-ssh
+        version: 7351c8c41bf504c1da33d4fa9778c8a8ba6435c8  # hpn-18.7.0
+        refspec: 7351c8c41bf504c1da33d4fa9778c8a8ba6435c8
+        depth: 1
+
     - name: Make
       ansible.builtin.shell:
-        chdir: ~/hpn-ssh
+        chdir: /tmp/hpn-ssh
         cmd: autoreconf && ./configure --with-pam && make -j"$(nproc)"
       changed_when: true
 
     - name: Make install
       ansible.builtin.command:
-        chdir: ~/hpn-ssh
+        chdir: /tmp/hpn-ssh
         cmd: sudo make install
       changed_when: true
+
+    - name: Delete /tmp repo
+      ansible.builtin.file:
+        path: /tmp/hpn-ssh
+        state: absent
 
     - name: Delete default config
       # So ansible.builtin.copy "overwrites" only the default config later.
