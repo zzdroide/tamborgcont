@@ -44,8 +44,9 @@ Some manual interactive setup after it finishes:
 sudo su - borg
 
 # Either create a new repo:
+export BORG_REPO=$HOME/TAM
 borg init --encryption=repokey
-borg key export  # Send the key to an email to self
+borg key export  # Send the key in an email to self
 
 # Or restore it to $HOME/TAM.
 
