@@ -1,3 +1,4 @@
+
 import os
 import shutil
 import sys
@@ -7,26 +8,26 @@ from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fi
 from . import borg
 from .config import does_user_exist
 from .constants import RC, Paths
-from .utils import getidx, mkfile
+from .utils import getidx, mkfile, without_temp
 
 
 def check_repo():
     try:
-        user_prefix = Paths.lock_user.read_text() + '-'
-        prev_arcs = Paths.lock_prev_arcs.read_text()
-        cur_arcs = borg.dump_arcs()
+        user = Paths.lock_user.read_text()
+        prev_arcs = without_temp(Paths.lock_prev_arcs.read_text(), user)
+        cur_arcs = without_temp(borg.dump_arcs(), user)
 
-        # Check that previous archives are intact
+        # Check that previous archives are intact, except for f'{user}[temp]'
         if not cur_arcs.startswith(prev_arcs):
             return False, 'Previous archives were modified!'
 
-        # Check that new archives begin with user_prefix
+        # Check that new archives begin with user prefix (excluding f'{user}[temp]')
         new_arcs = cur_arcs.replace(prev_arcs, '', 1)
         while new_arcs:
             _arc_id, _sep, new_arcs = new_arcs.partition('\x00')
             arc_name, _sep, new_arcs = new_arcs.partition('\x00')
-            if not arc_name.startswith(user_prefix):
-                return False, f"Created [{arc_name}] that doesn't start with [{user_prefix}]!"
+            if not arc_name.startswith(user + '-'):
+                return False, f"Created [{arc_name}] that doesn't start with [{user}-]!"
 
         return True, None  # noqa: TRY300
 
