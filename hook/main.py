@@ -8,7 +8,7 @@ from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fi
 from . import borg
 from .config import does_user_exist
 from .constants import RC, Paths
-from .utils import get_logger, getidx, mkfile, without_temp
+from .utils import get_logger, mkfile, without_temp
 
 logger = get_logger()
 
@@ -123,10 +123,11 @@ def main(argv):
 
     (1) takes the lock, (2) fills it, and (3) checks and releases.
     """
+    hook_src = argv[1] if len(argv) > 1 else None
+    key_user = argv[2] if len(argv) > 2 else None
 
     Paths.state.mkdir(exist_ok=True)
 
-    hook_src = getidx(argv, 1)
     if hook_src == 'pam':
         pam_type = os.environ.get('PAM_TYPE')
         if pam_type == 'open_session':
@@ -138,7 +139,6 @@ def main(argv):
             sys.exit(RC.invalid_usage)
 
     elif hook_src == 'ssh_command':
-        key_user = getidx(argv, 2)
         if key_user:
             fill_lock(key_user)
         else:
