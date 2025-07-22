@@ -61,6 +61,11 @@
       - python3-venv
       - python3.13
 
+      # For systemd-python (https://github.com/systemd/python-systemd/#to-build-from-source)
+      - libsystemd-dev
+      - python3.13-dev
+      - build-essential
+
       # To compile hpn-ssh  https://github.com/rapier1/hpn-ssh/blob/hpn-18.7.0/HPNSSHInstallation.txt#L18
       - build-essential
       - libssl-dev

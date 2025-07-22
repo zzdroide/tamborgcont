@@ -45,7 +45,7 @@ class TestAcquireLock:
     @pytest.mark.usefixtures('borg_repo_unlocked')
     def test_deny_on_locked(self):
         Paths.lock.mkdir()
-        Paths.lock_ip.write_text(os.environ.get('PAM_RHOST'))
+        Paths.lock_ip.write_text(os.environ['PAM_RHOST'])
 
         with pytest.raises(SystemExit) as e:
             self.run_main()

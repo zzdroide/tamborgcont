@@ -1225,6 +1225,17 @@ docs = ["argparse-manpage", "cairosvg", "markdown-include", "mkdocs", "mkdocs-gi
 test = ["enrich (>=1.2.6)", "molecule (>=3.4.0)", "pytest (>=6.2.5)", "pytest-cov (>=2.12.1)", "pytest-plus (>=0.2)", "pytest-xdist (>=2.3.0)"]
 
 [[package]]
+name = "systemd-python"
+version = "235"
+description = "Python interface for libsystemd"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "systemd-python-235.tar.gz", hash = "sha256:4e57f39797fd5d9e2d22b8806a252d7c0106c936039d1e71c8c6b8008e695c0a"},
+]
+
+[[package]]
 name = "tenacity"
 version = "9.1.2"
 description = "Retry code until it succeeds"
@@ -1299,4 +1310,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "~3.13"
-content-hash = "3aa417feb196282c0b9be6dc26e38696ac03809676c6b80216b3f0a1ca8e2722"
+content-hash = "ca177c4114eccfc660ea6fe37f74680f4a1345c306cca4073f0d3dfc1ac6a03d"

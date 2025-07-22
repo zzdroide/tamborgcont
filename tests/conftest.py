@@ -1,3 +1,4 @@
+import logging
 import os
 import tempfile
 from inspect import isclass
@@ -6,7 +7,7 @@ from pathlib import Path
 import pytest
 import sh
 
-from hook import borg
+from hook import borg, utils
 from hook.constants import Paths
 
 
@@ -47,3 +48,12 @@ class PreventSh:
 @pytest.fixture(autouse=True)
 def no_sh_calls(monkeypatch):
     monkeypatch.setattr(borg, 'sh', PreventSh())
+
+
+@pytest.fixture(autouse=True)
+def disable_logger(monkeypatch):
+    def get_logger():
+        logger = logging.getLogger()
+        logger.disabled = True
+        return logger
+    monkeypatch.setattr(utils, 'get_logger', get_logger)

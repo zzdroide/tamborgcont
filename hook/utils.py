@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+import logging
+import sys
 from typing import TYPE_CHECKING
+
+from systemd import journal
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -37,3 +41,17 @@ def without_temp(arcs: list | str, user: str):
     return arcs2str(
         [arc for arc in arcs if arc[1] != f'{user}[temp]']
     )
+
+
+def get_logger():
+    logger = logging.getLogger()
+
+    journal_handler = journal.JournalHandler(SYSLOG_IDENTIFIER='borg_ssh_hook')
+    journal_handler.setLevel(logging.INFO)
+    logger.addHandler(journal_handler)
+
+    stderr_handler = logging.StreamHandler(sys.stderr)
+    stderr_handler.setLevel(logging.ERROR)
+    logger.addHandler(stderr_handler)
+
+    return logger

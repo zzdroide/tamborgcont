@@ -8,10 +8,13 @@ from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fi
 from . import borg
 from .config import does_user_exist
 from .constants import RC, Paths
-from .utils import getidx, mkfile, without_temp
+from .utils import get_logger, getidx, mkfile, without_temp
+
+logger = get_logger()
 
 
 def check_repo():
+    logger.info('Checking repo...')
     try:
         user = Paths.lock_user.read_text()
         prev_arcs = without_temp(Paths.lock_prev_arcs.read_text(), user)
@@ -29,11 +32,13 @@ def check_repo():
             if not arc_name.startswith(user + '-'):
                 return False, f"Created [{arc_name}] that doesn't start with [{user}-]!"
 
-        return True, None  # noqa: TRY300
+        logger.info(f'...for user {user}, is OK')
+        return True, None
 
     except FileNotFoundError:
         # We are at release_lock(). Assume that fill_lock() wasn't called.
         # Anyway, with any of the two files missing we can't check the repo.
+        logger.info('...but lock is not filled.')
         return True, None
 
 
@@ -64,32 +69,38 @@ def remove_repo_is_ok():
 
 
 def acquire_lock():
+    logger.info(f'{os.environ['PAM_RHOST']} is acquiring lock...')
+
     try:
         remove_repo_is_ok()
     except FileNotFoundError:
-        print('Repo is NOT OK')
+        logger.error('Repo is NOT OK')
         sys.exit(RC.access_denied)
 
     if not borg.is_repo_unlocked():
-        print('Underlying repo is locked')
+        logger.error('Underlying repo is locked')
         sys.exit(RC.access_denied)
 
     try:
         Paths.lock.mkdir()
     except FileExistsError:
-        print(get_repo_locked_msg())
+        logger.error(get_repo_locked_msg())
         sys.exit(RC.access_denied)
 
-    Paths.lock_ip.write_text(os.environ.get('PAM_RHOST'))
+    Paths.lock_ip.write_text(os.environ['PAM_RHOST'])
+    logger.info('...OK')
 
 
 def fill_lock(key_user):
+    logger.info(f'{key_user} is filling lock...')
+
     if not does_user_exist(key_user):
-        print(f'User not in config: {key_user}')
+        logger.error(f'User not in config: {key_user}')
         sys.exit(RC.access_denied)
 
     Paths.lock_user.write_text(key_user)
     Paths.lock_prev_arcs.write_text(borg.dump_arcs())
+    logger.info('...OK')
 
 
 def release_lock():
@@ -99,7 +110,7 @@ def release_lock():
         shutil.rmtree(Paths.lock)
         mkfile(Paths.repo_is_ok)
     else:
-        print(errmsg)
+        logger.error(errmsg)
         sys.exit(RC.generic_error)
 
 
@@ -123,7 +134,7 @@ def main(argv):
         elif pam_type == 'close_session':
             release_lock()
         else:
-            print(f'Invalid $PAM_TYPE: {pam_type}')
+            logger.error(f'Invalid $PAM_TYPE: {pam_type}')
             sys.exit(RC.invalid_usage)
 
     elif hook_src == 'ssh_command':
@@ -131,11 +142,11 @@ def main(argv):
         if key_user:
             fill_lock(key_user)
         else:
-            print('"ssh_command" without key_user')
+            logger.error('"ssh_command" without key_user')
             sys.exit(RC.invalid_usage)
 
     else:
-        print(f'Invalid hook_src: {hook_src}')
+        logger.error(f'Invalid hook_src: {hook_src}')
         sys.exit(RC.invalid_usage)
 
 
