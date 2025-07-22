@@ -1,3 +1,14 @@
+- name: Set umask 022
+  # umask 002 is perfectly fine for User Private Group (https://wiki.debian.org/Debate/umask),
+  # but then ssh and zsh complain and need manual umask settings.
+  ansible.builtin.lineinfile:
+    path: "{{ item }}"
+    regexp: "^session optional\t\t\tpam_umask.so"
+    line: "session optional\t\t\tpam_umask.so nousergroups"
+  loop:
+    - /etc/pam.d/common-session
+    - /etc/pam.d/common-session-noninteractive
+
 - name: Set sudo nopasswd
   ansible.builtin.copy:
     dest: /etc/sudoers.d/nopasswd
@@ -15,7 +26,6 @@
     group: borg   # Without this, gid=100(users)
     password: "!"
     shell: /bin/zsh
-    # Unfortunately it's not enough to set "umask" here :/
 
     generate_ssh_key: true
     ssh_key_type: ed25519

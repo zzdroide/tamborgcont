@@ -72,3 +72,41 @@
     executable: /bin/bash
   changed_when: false
   tags: molecule-notest   # "netlink error: Operation not supported" in VirtualBox
+
+- name: Check if autosuspend.conf is default
+  ansible.builtin.shell:
+    cmd: '[[ "$(head -n1 /etc/autosuspend.conf)" == "## This is an exemplary documentation file that mainly serves as a syntax explanation." ]]'
+    executable: /bin/bash
+  register: autosuspend_conf_default
+  failed_when: false
+  changed_when: false
+
+- name: Copy autosuspend and borg-daily files
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    force: "{{ item.force | default(false) }}"  # Don't overwrite existing
+    owner: root
+    group: root
+    mode: "0644"
+  loop:
+    - src: files/autosuspend.conf
+      dest: /etc/autosuspend.conf
+      force: "{{ autosuspend_conf_default.rc == 0 }}"
+    - src: files/borg-daily.service
+      dest: /etc/systemd/system/borg-daily.service
+    - src: files/borg-daily.timer
+      dest: /etc/systemd/system/borg-daily.timer
+  register: autosuspend_copy
+
+- name: Restart autosuspend on new config
+  ansible.builtin.systemd:
+    name: autosuspend.service
+    state: restarted
+  when: autosuspend_copy.results[0].changed
+
+- name: Enable and start borg-daily.timer
+  ansible.builtin.systemd:
+    name: borg-daily.timer
+    state: started
+    enabled: true

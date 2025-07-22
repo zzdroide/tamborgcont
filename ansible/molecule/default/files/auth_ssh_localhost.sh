@@ -7,16 +7,15 @@ if ! [ -s ~/.ssh/id_ed25519 ]; then
 fi
 
 # AK for vagrant user:
-cat ~/.ssh/id_ed25519.pub >> ~/.ssh/authorized_keys
+cat ~/.ssh/id_ed25519.pub >>~/.ssh/authorized_keys
 
 # AK for borg user:
 # shellcheck disable=SC2024
-< ~/.ssh/id_ed25519.pub \
+<~/.ssh/id_ed25519.pub \
   sudo -u borg \
     tee -a /home/borg/.ssh/authorized_keys \
 >/dev/null
 
 # known_hosts for vagrant user:
-(umask 077; \
-  ssh-keyscan -p 2222 localhost >> ~/.ssh/known_hosts \
-  && ssh-keyscan      localhost >> ~/.ssh/known_hosts)
+ssh-keyscan -p 2222 localhost >>~/.ssh/known_hosts
+ssh-keyscan         localhost >>~/.ssh/known_hosts

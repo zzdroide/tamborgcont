@@ -20,6 +20,7 @@
         - "{{ ansible_user }}"
         - borg
       changed_when: false
+      timeout: 3  # Prevent hang on "zsh compinit: ... Ignore insecure directories...?"
 
     - name: Authorize ssh localhost
       # ansible.posix.authorized_key would require loading pubkey from remote...

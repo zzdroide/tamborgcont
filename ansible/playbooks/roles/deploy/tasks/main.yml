@@ -17,22 +17,6 @@
     cache_valid_time: "{{ 60 * 60 * 12 }}"
   become: true
 
-- name: Reduce deadsnakes PPA priority
-  ansible.builtin.copy:
-    src: files/deadsnakes_apt_preferences
-    dest: /etc/apt/preferences.d/deadsnakes
-    owner: root
-    group: root
-    mode: "0644"
-  become: true
-
-- name: Add deadsnakes PPA
-  ansible.builtin.apt_repository:
-    repo: ppa:deadsnakes/ppa
-    codename: jammy   # https://askubuntu.com/questions/445487/what-debian-version-are-the-different-ubuntu-versions-based-on/445496#445496
-    state: present
-  become: true
-
 - name: Install packages
   ansible.builtin.apt:
     name:
@@ -55,15 +39,12 @@
       # Serve public info
       - nginx
 
-      # pipx and Poetry with python3.13
-      # Future, trixie: remove deadsnakes, install pipx with apt
-      - python3-pip
-      - python3-venv
-      - python3.13
+      # pipx for packages
+      - pipx
 
       # For systemd-python (https://github.com/systemd/python-systemd/#to-build-from-source)
       - libsystemd-dev
-      - python3.13-dev
+      - python3-dev
       - build-essential
 
       # To compile hpn-ssh  https://github.com/rapier1/hpn-ssh/blob/hpn-18.7.0/HPNSSHInstallation.txt#L18
@@ -74,8 +55,8 @@
       - libpam0g-dev
 
       # To build Borg  https://borgbackup.readthedocs.io/en/stable/installation.html#debian-ubuntu
-      - python3.13
-      - python3.13-dev
+      - python3
+      - python3-dev
       - libacl1-dev
       - libssl-dev
       - liblz4-dev
@@ -85,6 +66,9 @@
       - pkg-config
       - libfuse3-dev
       - fuse3
+
+      # To manage server sleep
+      - autosuspend
     state: present
     update_cache: true
     cache_valid_time: "{{ 60 * 60 * 12 }}"
@@ -121,10 +105,5 @@
 
 - name: Install Python packages
   ansible.builtin.import_tasks: python.yml
-  vars:
-    ansible_become: true
-
-- name: Setup autosuspend
-  ansible.builtin.import_tasks: autosuspend.yml
   vars:
     ansible_become: true

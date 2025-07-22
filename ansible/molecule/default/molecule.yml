@@ -9,7 +9,7 @@ driver:
 
 platforms:
   - name: instance
-    box: debian/bookworm64
+    box: debian/testing64   # TODO: trixie64
     memory: 768 # MB
     cpus: 2
 

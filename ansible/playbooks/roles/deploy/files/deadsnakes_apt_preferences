@@ -1,4 +1,0 @@
-Explanation: Reduce deadsnakes PPA priority
-Package: *
-Pin: release o=LP-PPA-deadsnakes
-Pin-Priority: 300
