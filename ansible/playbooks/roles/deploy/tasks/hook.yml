@@ -26,7 +26,7 @@
       insertbefore: "{{ line2 }}"
   vars:
     line1: " "
-    line2: "# open_session/close_session hook"
+    line2: "# tamborgcont hook"
     line3: session required pam_exec.so quiet stdout /usr/local/lib/ssh_pam_hook.sh
 
 - name: Symlink ssh PAM config to hpnssh

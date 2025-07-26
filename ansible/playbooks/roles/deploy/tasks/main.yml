@@ -43,6 +43,10 @@
       # pipx for packages
       - pipx
 
+      # ssh_pam_hook.sh
+      - acpid
+      - beep
+
       # For systemd-python (https://github.com/systemd/python-systemd/#to-build-from-source)
       - libsystemd-dev
       - python3-dev
