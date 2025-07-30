@@ -70,11 +70,11 @@
     mode: "0644"
   loop:
     - src: files/sshd_config
-      dest: /usr/local/etc/hpnssh/sshd_config
-    - src: files/hpnssh-default
-      dest: /etc/default/hpnssh
+      dest: /usr/local/etc/hpnssh/
     - src: files/hpnssh.service
-      dest: /etc/systemd/system/hpnssh.service
+      dest: /etc/systemd/system/
+    - src: files/hpnssh.service.d
+      dest: /etc/systemd/system/
   become: true
 
 - name: Enable and start service

@@ -1,4 +1,12 @@
-# Server control for tamborg repo
+# Server control for tamborg repos
+
+The backup server itself has no backup, so if a restore is needed:
+- Install OS again
+- Deploy with this repo
+- Restore repository from remote backup
+- Previous ssh private keys will be lost, new ones will have to be configured.
+
+Changes in config.yml should be committed.
 
 ## Local setup
 ```sh
@@ -24,6 +32,8 @@ cd ansible
 molecule test
 ```
 
+Note: autosuspend is enabled in Vagrant too. If `molecule login` hangs, reset the instance in VirtualBox.
+
 ## Server setup
 
 - Install Debian bookworm
@@ -43,12 +53,11 @@ Some manual interactive setup after it finishes:
 # In server:
 sudo su - borg
 
-# Either create a new repo:
-export BORG_REPO=$HOME/TAM
-borg init --encryption=repokey
-borg key export  # Send the key in an email to self
+# Either create new repos:
+borg init --encryption=repokey $HOME/TAM
+borg key export $HOME/TAM   # Send the key in an email to self
 
-# Or restore it to $HOME/TAM.
+# Or restore them to $HOME.
 
 cd ~
 git clone git@github.com:zzdroide/tamborgcont.git
@@ -61,5 +70,10 @@ cp config.example.yml config.yml
 nano config.yml
 ./update_authorized_keys.sh
 
-touch state/repo_is_ok
+touch state/TAM/enabled
+```
+
+### Watching logs
+```sh
+sudo journalctl -ft sshd -t borg_ssh_hook
 ```

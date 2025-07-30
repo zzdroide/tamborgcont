@@ -30,7 +30,7 @@
 - name: Add silence-console.service
   ansible.builtin.copy:
     src: files/silence-console.service
-    dest: /etc/systemd/system/silence-console.service
+    dest: /etc/systemd/system/
     owner: root
     group: root
     mode: "0644"
@@ -104,12 +104,12 @@
     mode: "0644"
   loop:
     - src: files/autosuspend.conf
-      dest: /etc/autosuspend.conf
+      dest: /etc/
       force: "{{ autosuspend_conf_default.rc == 0 }}"
     - src: files/borg-daily.service
-      dest: /etc/systemd/system/borg-daily.service
+      dest: /etc/systemd/system/
     - src: files/borg-daily.timer
-      dest: /etc/systemd/system/borg-daily.timer
+      dest: /etc/systemd/system/
   register: autosuspend_copy
 
 - name: Restart autosuspend on new config

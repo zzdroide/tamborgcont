@@ -95,16 +95,16 @@
   vars:
     ansible_become: true
 
+- name: Setup nginx
+  ansible.builtin.import_tasks: nginx.yml
+  vars:
+    ansible_become: true
+
 - name: Setup hpn-ssh
   ansible.builtin.import_tasks: hpnssh.yml
 
 - name: Setup hook
   ansible.builtin.import_tasks: hook.yml
-  vars:
-    ansible_become: true
-
-- name: Setup nginx
-  ansible.builtin.import_tasks: nginx.yml
   vars:
     ansible_become: true
 

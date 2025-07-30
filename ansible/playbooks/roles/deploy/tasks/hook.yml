@@ -1,7 +1,7 @@
 - name: Add PAM hook script
   ansible.builtin.copy:
     src: files/ssh_pam_hook.sh
-    dest: /usr/local/lib/ssh_pam_hook.sh
+    dest: /usr/local/lib/
     force: false  # Don't overwrite existing
     mode: "0744"
 
@@ -34,3 +34,17 @@
     state: link
     src: /etc/pam.d/sshd
     dest: /etc/pam.d/hpnsshd
+
+- name: Copy tamborg-release-lock.service
+  ansible.builtin.copy:
+    src: files/tamborg-release-lock.service
+    dest: /etc/systemd/system/
+    force: false  # Don't overwrite existing
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Enable tamborg-release-lock.service
+  ansible.builtin.systemd:
+    name: tamborg-release-lock.service
+    enabled: true

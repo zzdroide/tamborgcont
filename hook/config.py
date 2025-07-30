@@ -8,7 +8,10 @@ def get_config():
         return yaml.safe_load(f)
 
 
-def does_user_exist(user):
+def get_from_pk(pk: str):
     users = get_config()['users']
-    gen = (u for u in users if u['user'] == user)
-    return bool(next(gen, None))
+    user = next((u for u in users if u['pubkey'] == pk), None)
+    if user:
+        return user['repo'], user['user']
+    msg = f'No user with pubkey {pk}'
+    raise ValueError(msg)

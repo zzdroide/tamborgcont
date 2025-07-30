@@ -1,3 +1,0 @@
-# Default settings for openssh-server.
-# Options to pass to sshd
-SSHD_OPTS=

@@ -25,7 +25,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.ruff.lint]
 preview = true
 select = ["F", "E", "W", "C90", "I", "N", "UP", "YTT", "ASYNC", "S", "BLE", "FBT", "B", "A", "COM", "C4", "DTZ", "T10", "DJ", "EM", "EXE", "FA", "ISC", "ICN", "LOG", "G", "INP", "PIE", "T20", "PYI", "PT", "Q", "RSE", "RET", "SLF", "SLOT", "SIM", "TID", "TC", "INT", "ARG", "PTH", "FIX", "PD", "PGH", "PL", "TRY", "FLY", "NPY", "FAST", "AIR", "PERF", "FURB", "RUF"]
-ignore = ["FIX004", "PLR09", "PLR6301", "Q002", "DTZ011", "E221", "E241", "COM812", "E501", "S104", "BLE001", "PLC0415", "TRY002", "TRY300", "TRY400", "G00", "PLR2004"]
+ignore = ["FIX004", "PLR09", "PLR6301", "Q002", "DTZ011", "E221", "E241", "COM812", "E501", "S104", "BLE001", "PLC0415", "TRY002", "TRY300", "TRY301", "TRY400", "G00", "PLR2004"]
 
 [tool.ruff.lint.flake8-quotes]
 docstring-quotes = "single"

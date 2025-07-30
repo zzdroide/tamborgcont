@@ -5,7 +5,7 @@
       ansible.builtin.include_role:
         name: ../../playbooks/roles/update_ak
       vars:
-        update_ak__config: ../../../../../config.example.yml
+        update_ak__config: ../../../../../config.test.yml
         # Don't break Molecule ssh to VirtualBox:
         update_ak__file: ~/.ssh/authorized_keys-molecule
 

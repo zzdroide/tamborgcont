@@ -2,16 +2,8 @@ from __future__ import annotations
 
 import logging
 import sys
-from typing import TYPE_CHECKING
 
 from systemd import journal
-
-if TYPE_CHECKING:
-    from pathlib import Path
-
-
-def mkfile(path: Path):
-    path.open('x').close()
 
 
 def arcs2str(arcs: list):
@@ -38,13 +30,18 @@ def without_temp(arcs: list | str, user: str):
 
 def get_logger():
     logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
 
     journal_handler = journal.JournalHandler(SYSLOG_IDENTIFIER='borg_ssh_hook')
     journal_handler.setLevel(logging.INFO)
     logger.addHandler(journal_handler)
 
     stderr_handler = logging.StreamHandler(sys.stderr)
-    stderr_handler.setLevel(logging.ERROR)
+    stderr_handler.setLevel(logging.WARNING)
     logger.addHandler(stderr_handler)
 
     return logger
+
+
+class BadRepoError(Exception):
+    pass

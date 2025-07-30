@@ -17,12 +17,10 @@ if [[ "$PAM_USER" == "borg" ]]; then
     # Prevent accidental connections without None cipher
     echo "Please use hpnssh."
     exit 1
-  fi
-
-  if [[ "$PAM_TYPE" == "open_session" || "$PAM_TYPE" == "close_session" ]]; then
+  elif [[ "$PAM_TYPE" == "open_session" || "$PAM_TYPE" == "close_session" ]]; then
     sudo --login -u borg \
       PAM_TYPE="$PAM_TYPE" \
-      PAM_RHOST="$PAM_RHOST" \
+      SSH_AUTH_INFO_0="$SSH_AUTH_INFO_0" \
       /home/borg/tamborgcont/hook.sh pam
   fi
 fi

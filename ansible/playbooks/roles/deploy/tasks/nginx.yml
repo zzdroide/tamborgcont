@@ -1,13 +1,3 @@
-- name: Make nginx start only after hpnssh
-  ansible.builtin.copy:
-    src: files/nginx.service.d
-    dest: /etc/systemd/system/
-    owner: root
-    group: root
-    mode: "0644"
-    force: true  # Replace on changes
-  register: override_copy
-
 - name: Install over default site
   ansible.builtin.copy:
     src: files/nginx_site
@@ -20,7 +10,6 @@
 
 - name: Reload nginx
   ansible.builtin.systemd:
-    daemon_reload: "{{ override_copy.changed }}"
     name: nginx
     state: reloaded
   when: site_copy.changed

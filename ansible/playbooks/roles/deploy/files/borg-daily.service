@@ -7,6 +7,7 @@ Type=exec
 User=borg
 Group=borg
 ExecStart=echo TODO
+# check, rsync, prune, smart
 
 [Install]
 WantedBy=multi-user.target

@@ -17,5 +17,5 @@ cat ~/.ssh/id_ed25519.pub >>~/.ssh/authorized_keys
 >/dev/null
 
 # known_hosts for vagrant user:
-ssh-keyscan -p 2222 localhost >>~/.ssh/known_hosts
+ssh-keyscan -p 1701 localhost >>~/.ssh/known_hosts
 ssh-keyscan         localhost >>~/.ssh/known_hosts

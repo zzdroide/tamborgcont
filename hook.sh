@@ -1,3 +1,3 @@
 #!/bin/sh
 cd "$(dirname "$0")" || exit 1
-poetry -q run python -m hook.main "$@"
+exec poetry -q run python -m hook.main "$@"

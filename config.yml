@@ -1,0 +1,8 @@
+users:
+  - user: TAM_2009
+    pubkey: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEEzh7eIUFgJy/CLTHN+B0wlq3QK0aTZz/0FVfKCtdA0
+    repo: TAM
+
+  - user: AMGS
+    pubkey: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMji6955pM7IL2rcaCYYJOxJcdMXY3fuXmB3itcOMTCw
+    repo: AMGS

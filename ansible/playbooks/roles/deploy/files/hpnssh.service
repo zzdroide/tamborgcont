@@ -5,9 +5,8 @@ After=network.target auditd.service
 ConditionPathExists=!/usr/local/etc/hpnssh/sshd_not_to_be_run
 
 [Service]
-EnvironmentFile=-/etc/default/hpnssh
 ExecStartPre=/usr/local/sbin/hpnsshd -t
-ExecStart=/usr/local/sbin/hpnsshd -D $SSHD_OPTS
+ExecStart=/usr/local/sbin/hpnsshd -D
 ExecReload=/usr/local/sbin/hpnsshd -t
 ExecReload=/bin/kill -HUP $MAINPID
 KillMode=process

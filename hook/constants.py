@@ -8,11 +8,14 @@ class RC:
 
 
 class Paths:
-    state = Path('state')
+    base_state = Path('state')
 
-    repo_is_ok = state / 'repo_is_ok'
+    @classmethod
+    def set_repo_name(cls, repo: str):
+        cls.repo_state = cls.base_state / repo
 
-    lock = state / 'lock'
-    lock_prev_arcs = lock / 'prev_arcs.bin'
-    lock_user = lock / 'user.txt'
-    lock_ip = lock / 'ip.txt'
+        cls.repo_enabled = cls.repo_state / 'enabled'
+
+        cls.lock = cls.repo_state / 'lock'
+        cls.lock_prev_arcs = cls.lock / 'prev_arcs.bin'
+        cls.lock_user = cls.lock / 'user.txt'
