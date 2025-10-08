@@ -9,7 +9,7 @@ driver:
 
 platforms:
   - name: instance
-    box: debian/testing64   # TODO: trixie64
+    box: bento/debian-13
     memory: 768 # MB
     cpus: 2
 

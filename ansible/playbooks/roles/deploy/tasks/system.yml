@@ -58,8 +58,8 @@
     - name: Enable non-free-firmware archive
       ansible.builtin.replace:
         path: /etc/apt/sources.list
-        regexp: ^deb(|-src) (\S+) bookworm main$
-        replace: deb\1 \2 bookworm main non-free-firmware
+        regexp: ^deb(|-src) (\S+) trixie main$
+        replace: deb\1 \2 trixie main non-free-firmware
 
     - name: Install the package
       ansible.builtin.apt:

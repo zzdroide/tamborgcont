@@ -36,7 +36,7 @@ Note: autosuspend is enabled in Vagrant too. If `molecule login` hangs, reset th
 
 ## Server setup
 
-- Install Debian bookworm
+- Install Debian trixie
   - with a strong password because SSH PasswordAuthentication defaults to yes
   - with "SSH server" and "standard system utilities" software
 - Set static IP (preferably at the router, against MAC)
