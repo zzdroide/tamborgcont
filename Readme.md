@@ -14,9 +14,6 @@ sudo add-apt-repository ppa:deadsnakes/ppa && sudo apt update && sudo apt instal
 pipx install poetry
 poetry env use python3.13
 poetry sync
-
-cp config.example.yml config.yml
-nano config.yml
 ```
 
 ### Running tests
@@ -66,11 +63,18 @@ poetry sync --without=dev
 
 nano ~/.zprofile  # Add "export BORG_PASSPHRASE=<pass>"
 
-cp config.example.yml config.yml
-nano config.yml
 ./update_authorized_keys.sh
 
 touch state/TAM/enabled
+```
+
+To edit users:
+```sh
+nano config.yml
+git add --all
+git commit
+git push
+./update_authorized_keys.sh
 ```
 
 ### Watching logs
