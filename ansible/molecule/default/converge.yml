@@ -8,6 +8,7 @@
         update_ak__config: ../../../../../config.test.yml
         # Don't break Molecule ssh to VirtualBox:
         update_ak__file: ~/.ssh/authorized_keys-molecule
+        is_molecule: true
 
     - name: Test deploy
       ansible.builtin.include_role:

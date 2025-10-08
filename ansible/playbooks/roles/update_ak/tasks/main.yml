@@ -1,10 +1,11 @@
 - name: Check for existance of authorized_keys.old
   ansible.builtin.stat:
     path: ~/.ssh/authorized_keys.old
+  when: is_molecule
   register: old_file
 
-- name: Update authorized_keys if authorized_keys.old doesn't exist
-  when: not old_file.stat.exists
+- name: Update authorized_keys
+  when: not is_molecule or not old_file.stat.exists   # Hack for converge idempotence
   block:
     - name: Prevent destroying authorized_keys of development computer
       ansible.builtin.stat:
