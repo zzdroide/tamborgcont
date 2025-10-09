@@ -11,6 +11,19 @@
     regexp: ^([^#].+\spam_motd.so\s)
     replace: "#\\1"
 
+- name: Disable poweroff with power button
+  ansible.builtin.lineinfile:
+    path: /etc/systemd/logind.conf
+    regexp: "^#?HandlePowerKey="
+    line: "HandlePowerKey=ignore"
+  register: logind_edit
+
+- name: Restart systemd-logind
+  ansible.builtin.systemd:
+    name: systemd-logind
+    state: restarted
+  when: logind_edit.changed
+
 - name: Set PAM to call hook
   # Reference: https://www.redpill-linpro.com/sysadvent/2017/12/11/break-the-glass.html
   ansible.builtin.lineinfile:
