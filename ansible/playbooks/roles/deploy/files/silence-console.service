@@ -4,7 +4,7 @@
 Description=Silence virtual console default beep
 
 [Service]
-Type=oneshot
+Type=idle
 Environment=TERM=linux
 StandardOutput=tty
 TTYPath=/dev/console
