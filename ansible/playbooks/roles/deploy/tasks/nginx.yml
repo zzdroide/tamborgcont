@@ -8,11 +8,18 @@
     force: true  # Replace on changes
   register: site_copy
 
+- name: Reduce nginx resource usage
+  ansible.builtin.lineinfile:
+    path: /etc/nginx/nginx.conf
+    regexp: "^worker_processes "
+    line: "worker_processes 1;"
+  register: worker_processes
+
 - name: Reload nginx
   ansible.builtin.systemd:
     name: nginx
     state: reloaded
-  when: site_copy.changed
+  when: site_copy.changed or worker_processes.changed
 
 - name: Give borg user write access
   ansible.builtin.file:
