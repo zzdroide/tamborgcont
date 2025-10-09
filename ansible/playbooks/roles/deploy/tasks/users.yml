@@ -46,3 +46,12 @@
     owner: borg
     group: borg
     mode: "0644"
+
+- name: Add .gitconfig for borg user
+  ansible.builtin.copy:
+    src: files/.gitconfig
+    dest: /home/borg/.gitconfig
+    force: false  # Don't overwrite existing
+    owner: borg
+    group: borg
+    mode: "0644"

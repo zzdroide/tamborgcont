@@ -1,0 +1,12 @@
+[pull]
+	ff = only
+
+[advice]
+	detachedHead = false
+
+[push]
+	autoSetupRemote = true
+
+[user]
+	name = borg_server
+	email = <>
