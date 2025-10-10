@@ -1,8 +1,15 @@
-- name: Disable PasswordAuthentication
+- name: Disable SSH PasswordAuthentication and time out clients
   ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
-    regexp: "^#?PasswordAuthentication "
-    line: "PasswordAuthentication no"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - regexp: "^#?PasswordAuthentication "
+      line: "PasswordAuthentication no"
+    - regexp: "^#?ClientAliveInterval "
+      line: "ClientAliveInterval 10"
+    - regexp: "^#?ClientAliveCountMax "
+      line: "ClientAliveCountMax 2"
   register: sshd_config_edit
 
 - name: Restart sshd
