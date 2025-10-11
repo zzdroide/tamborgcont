@@ -139,9 +139,9 @@ def main(argv):
         I don't know if there's a reliable way to trigger it.
 
     (3) By PAM when the session is closed (close_session).
-        This is called even on broken connections, so repo check should happen here.
+        This is called even on broken connections, so lock release should happen here.
         Also lock should be released on boot, before starting hpnsshd in case server crashed with lock held.
-        Nothing can be done by failing the hook, even stdout is not delivered haha.
+        Nothing can be done by failing this hook, even stdout is not delivered haha.
 
     So don't even call on (2). PAM hooks can get repo and user from $SSH_AUTH_INFO_0
     """
