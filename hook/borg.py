@@ -14,6 +14,7 @@ def is_repo_unlocked(repo: str):
     try:
         sh.borg(
             'with-lock',
+            '::',
             'true',
             _env=make_borg_env(repo),
         )
