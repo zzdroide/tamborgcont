@@ -54,6 +54,17 @@ class TestReleaseLock:
         main.check_repo('TAM', 'user1')
 
     @pytest.mark.usefixtures('locked_by_user1')
+    def test_allow_first_temp_rename(self, monkeypatch):
+        self.write_prev_arcs((
+            ('id1', 'user1[temp]'),
+        ))
+
+        monkeypatch.setattr(hook.borg, 'dump_arcs', lambda _: arcs2str((
+            ('id2', 'user1-asdf'),
+        )))
+        self.check_repo()
+
+    @pytest.mark.usefixtures('locked_by_user1')
     def test_allow_self_temp_delete(self, monkeypatch):
         self.write_prev_arcs((
             ('id1', 'user1-asdf'),

@@ -7,8 +7,8 @@ from systemd import journal
 
 
 def arcs2str(arcs: list):
-    lines = (f'{arc[0]}\x00{arc[1]}' for arc in arcs)
-    return '\x00'.join(lines) + '\x00'
+    lines = (f'{arc[0]}\x00{arc[1]}\x00' for arc in arcs)
+    return ''.join(lines)
 
 
 def arcs2list(dump: str):
