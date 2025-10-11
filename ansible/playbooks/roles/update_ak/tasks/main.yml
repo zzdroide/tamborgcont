@@ -27,4 +27,4 @@
         path: "{{ update_ak__file }}"
       loop: "{{ (lookup('file', update_ak__config) | from_yaml).users }}"
       vars:
-        command: borg serve --append-only --restrict-to-repository /home/borg/{{ item.repo }}
+        command: zsh -l -c 'borg serve --append-only --restrict-to-repository /home/borg/{{ item.repo }}'
