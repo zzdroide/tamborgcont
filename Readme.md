@@ -56,8 +56,9 @@ borg key export $HOME/TAM   # Send the key in an email to self
 
 # Or restore them to $HOME.
 
-cd ~
+# The next line requires adding ~/.ssh/id_ed25519.pub in https://github.com/zzdroide/tamborgcont/settings/keys
 git clone git@github.com:zzdroide/tamborgcont.git
+
 cd tamborgcont
 poetry sync --without=dev
 
