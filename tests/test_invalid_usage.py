@@ -22,9 +22,9 @@ class TestInvalidUsage:
     def test_bad_ssh_auth_info(self, monkeypatch):
         monkeypatch.delenv('SSH_AUTH_INFO_0')
         self.check_invalid_pam_usage()
-        monkeypatch.setenv('SSH_AUTH_INFO_0', 'publickey asdf')
+        monkeypatch.setenv('SSH_AUTH_INFO_0', 'publickey asdf\n')
         self.check_invalid_pam_usage()
-        monkeypatch.setenv('SSH_AUTH_INFO_0', 'publickey ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI/does+not+exist')
+        monkeypatch.setenv('SSH_AUTH_INFO_0', 'publickey ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI/does+not+exist\n')
         self.check_invalid_pam_usage()
 
     def test_bad_pam_type(self, monkeypatch):

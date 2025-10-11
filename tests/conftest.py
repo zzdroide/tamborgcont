@@ -38,7 +38,7 @@ def default_state(
         Paths.set_repo_name('TAM')
         Paths.repo_state.mkdir(parents=True)
         mkfile(Paths.repo_enabled)
-        monkeypatch.setenv('SSH_AUTH_INFO_0', 'publickey ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEEzh7eIUFgJy/CLTHN+B0wlq3QK0aTZz/0FVfKCtdA0')
+        monkeypatch.setenv('SSH_AUTH_INFO_0', 'publickey ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEEzh7eIUFgJy/CLTHN+B0wlq3QK0aTZz/0FVfKCtdA0\n')
         yield
         os.chdir(old_cwd)
 

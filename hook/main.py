@@ -156,10 +156,10 @@ def main(argv):
 
     ssh_auth_info = os.environ.get('SSH_AUTH_INFO_0')
     try:
-        pk = re.fullmatch(r'publickey ([a-z0-9-]+ [a-zA-Z0-9+/=]+)', ssh_auth_info)[1]
+        pk = re.fullmatch(r'publickey ([a-z0-9-]+ [a-zA-Z0-9+/=]+)\n?', ssh_auth_info)[1]
         repo, user = get_from_pk(pk)
     except Exception:
-        logger.exception(f'Failed to get user from pubkey. $SSH_AUTH_INFO_0: {ssh_auth_info}')
+        logger.exception(f'Failed to get user from pubkey. $SSH_AUTH_INFO_0: {ssh_auth_info!r}')
         sys.exit(RC.invalid_usage)
 
     Paths.set_repo_name(repo)
