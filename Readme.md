@@ -61,10 +61,14 @@ git clone git@github.com:zzdroide/tamborgcont.git
 cd tamborgcont
 poetry sync --without=dev
 
-nano ~/.zprofile  # Add "export BORG_PASSPHRASE=<pass>"
+take ~/env
+cp ~/tamborgcont/env.example TAM
+nano TAM
 
+popd
 ./update_authorized_keys.sh
 
+md state/TAM
 touch state/TAM/enabled
 ```
 
