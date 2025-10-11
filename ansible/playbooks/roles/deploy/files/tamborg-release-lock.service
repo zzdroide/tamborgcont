@@ -10,7 +10,7 @@ Type=oneshot
 RemainAfterExit=yes
 User=borg
 Group=borg
-ExecStart=/home/borg/tamborgcont/hook.sh tamborg-release-lock
+ExecStart=zsh -lc "/home/borg/tamborgcont/hook.sh tamborg-release-lock"
 
 [Install]
 WantedBy=multi-user.target
