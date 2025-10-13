@@ -10,5 +10,4 @@
       source: poetry
     - name: borgbackup~=1.4
       source: borgbackup[pyfuse3]
-      python: python3.13
       # Note: there's a PPA, but it doesn't work with Debian.
