@@ -42,12 +42,12 @@ def check_repo(repo: str, user: str | None, *, release_on_restart=False):
 
     cur_arcs = without_temp(borg.dump_arcs(repo), user)
 
-    # Check that previous archives are intact, except for f'{user}[temp]'
+    # Check that previous archives are intact, except for f'{user}(temp)'
     if not cur_arcs.startswith(prev_arcs):
         msg = 'Previous archives were modified!'
         raise BadRepoError(msg)
 
-    # Check that new archives begin with user prefix (excluding f'{user}[temp]')
+    # Check that new archives begin with user prefix (excluding f'{user}(temp)')
     new_arcs = cur_arcs.replace(prev_arcs, '', 1)
     while new_arcs:
         _arc_id, _sep, new_arcs = new_arcs.partition('\x00')

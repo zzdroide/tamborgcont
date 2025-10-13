@@ -24,7 +24,7 @@ def without_temp(arcs: list | str, user: str):
     if isinstance(arcs, str):
         arcs = arcs2list(arcs)
     return arcs2str(
-        [arc for arc in arcs if arc[1] != f'{user}[temp]']
+        [arc for arc in arcs if arc[1] != f'{user}(temp)']
     )
 
 
