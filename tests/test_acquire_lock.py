@@ -1,6 +1,6 @@
 import pytest
 
-import hook
+from hook import borg
 from hook.constants import RC, Paths
 from hook.main import main
 
@@ -12,11 +12,11 @@ class TestAcquireLock:
 
     @pytest.fixture
     def borg_repo_locked(self, monkeypatch):
-        monkeypatch.setattr(hook.borg, 'is_repo_unlocked', lambda _: False)
+        monkeypatch.setattr(borg, 'is_repo_unlocked', lambda _: False)
 
     @pytest.fixture
     def borg_repo_unlocked(self, monkeypatch):
-        monkeypatch.setattr(hook.borg, 'is_repo_unlocked', lambda _: True)
+        monkeypatch.setattr(borg, 'is_repo_unlocked', lambda _: True)
 
     def run_main(self):
         main(['main.py', 'pam'])
@@ -45,7 +45,7 @@ class TestAcquireLock:
 
     @pytest.mark.usefixtures('borg_repo_unlocked')
     def test_lock_contents(self, monkeypatch):
-        monkeypatch.setattr(hook.borg, 'dump_arcs', lambda _: 'archives')
+        monkeypatch.setattr(borg, 'dump_arcs', lambda _: 'archives')
 
         self.run_main()
 
