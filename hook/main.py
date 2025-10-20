@@ -8,7 +8,7 @@ import sys
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 from shared import borg
-from shared.config import get_config, get_from_pk
+from shared.config import get_config_from_pk, get_config_repos
 
 from .constants import RC, Paths
 from .utils import BadRepoError, get_logger, without_temp
@@ -108,8 +108,7 @@ def release_lock(repo: str, user: str):
 
 
 def release_lock_on_restart():
-    config_users = get_config()['users']
-    repos = {u['repo'] for u in config_users}
+    repos = get_config_repos()
 
     for repo in repos:
         Paths.set_repo_name(repo)
@@ -158,7 +157,7 @@ def main(argv):
     ssh_auth_info = os.environ.get('SSH_AUTH_INFO_0')
     try:
         pk = re.fullmatch(r'publickey ([a-z0-9-]+ [a-zA-Z0-9+/=]+)\n?', ssh_auth_info)[1]
-        repo, user = get_from_pk(pk)
+        repo, user = get_config_from_pk(pk)
     except Exception:
         logger.exception(f'Failed to get user from pubkey. $SSH_AUTH_INFO_0: {ssh_auth_info!r}')
         sys.exit(RC.invalid_usage)

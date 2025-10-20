@@ -45,7 +45,7 @@ class TestReleaseLock:
     @pytest.fixture
     def locked_by_user1(self, monkeypatch, locked_repo):  # noqa: ARG002
         Paths.lock_user.write_text('user1')
-        monkeypatch.setattr(config, 'get_from_pk', lambda _: ('TAM', 'user1'))
+        monkeypatch.setattr(config, 'get_config_from_pk', lambda _: ('TAM', 'user1'))
 
     def write_prev_arcs(self, arcs):
         Paths.lock_prev_arcs.write_text(arcs2str(arcs))

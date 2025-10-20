@@ -8,7 +8,12 @@ def get_config():
         return yaml.safe_load(f)
 
 
-def get_from_pk(pk: str):
+def get_config_repos():
+    users = get_config()['users']
+    return {u['repo'] for u in users}
+
+
+def get_config_from_pk(pk: str):
     users = get_config()['users']
     user = next((u for u in users if u['pubkey'] == pk), None)
     if user:

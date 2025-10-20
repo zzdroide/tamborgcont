@@ -9,7 +9,6 @@ import sh
 import yaml
 from tenacity import wait_fixed
 
-from hook import main
 from hook.constants import Paths
 from shared import borg, config
 
@@ -24,7 +23,6 @@ def use_test_config(monkeypatch):
         test_config = yaml.safe_load(f)
 
     monkeypatch.setattr(config, 'get_config', lambda: test_config)
-    monkeypatch.setattr(main, 'get_config', lambda: test_config)
 
 
 @pytest.fixture(autouse=True)
