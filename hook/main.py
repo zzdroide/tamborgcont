@@ -7,8 +7,9 @@ import sys
 
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
-from . import borg
-from .config import get_config, get_from_pk
+from shared import borg
+from shared.config import get_config, get_from_pk
+
 from .constants import RC, Paths
 from .utils import BadRepoError, get_logger, without_temp
 

@@ -9,9 +9,9 @@ import sh
 import yaml
 from tenacity import wait_fixed
 
-import hook
-from hook import borg
+from hook import main
 from hook.constants import Paths
+from shared import borg, config
 
 
 def mkfile(path: Path):
@@ -21,10 +21,10 @@ def mkfile(path: Path):
 @pytest.fixture(autouse=True)
 def use_test_config(monkeypatch):
     with Path('./config.test.yml').open(encoding='utf-8') as f:
-        config = yaml.safe_load(f)
+        test_config = yaml.safe_load(f)
 
-    monkeypatch.setattr(hook.config, 'get_config', lambda: config)
-    monkeypatch.setattr(hook.main, 'get_config', lambda: config)
+    monkeypatch.setattr(config, 'get_config', lambda: test_config)
+    monkeypatch.setattr(main, 'get_config', lambda: test_config)
 
 
 @pytest.fixture(autouse=True)
