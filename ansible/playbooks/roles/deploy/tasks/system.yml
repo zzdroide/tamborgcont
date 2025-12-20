@@ -22,6 +22,10 @@
   ansible.builtin.include_role:
     name: robertdebock.locale
 
+- name: Set timezone America/Santiago
+  community.general.timezone:
+    name: America/Santiago
+
 - name: Disable quiet boot
   ansible.builtin.replace:
     path: /etc/default/grub
