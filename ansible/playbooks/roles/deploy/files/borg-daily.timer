@@ -5,8 +5,8 @@ Requires=borg-daily.service
 Unit=borg-daily.service
 
 # America/Santiago timezone.
-# Whatsapp is hardcoded to backup at 02:00, then homeg4 backups it at 02:25.
-OnCalendar=*-*-* 02:45:00
+# Whatsapp is hardcoded to backup at 02:00, then homeg4 backups it at 02:10.
+OnCalendar=*-*-* 02:20:00
 
 [Install]
 WantedBy=timers.target
