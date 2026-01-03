@@ -22,15 +22,20 @@ TUESDAY = 1
 
 def main():
     hc_url = get_config_weekly_healthcheck()
-    hc_ping(f'{hc_url}/start')
+    is_weekly = datetime.now().astimezone().weekday() == TUESDAY
 
+    def weekly_ping(action: str, data: str | None = None):
+        if is_weekly:
+            hc_ping(f'{hc_url}/{action}', data)
+
+    weekly_ping('start')
     try:
         http_server = HttpServer()
         threads: list[ProcessRepo] = []
 
         # Assume each repo is on separate hardisk and can be processed in parallel:
         for repo in get_config_repos():
-            t = ProcessRepo(repo, http_server)
+            t = ProcessRepo(repo, http_server, is_weekly=is_weekly)
             t.start()
             threads.append(t)
 
@@ -40,15 +45,17 @@ def main():
             t.join_raise()
 
     except Exception as e:
-        hc_ping(f'{hc_url}/fail', str(e))
+        weekly_ping('fail', str(e))
+        raise
     else:
-        hc_ping(f'{hc_url}')
+        weekly_ping('')  # Success
 
 
 class ProcessRepo(Thread):
-    def __init__(self, repo: str, http_server: HttpServer):
+    def __init__(self, repo: str, http_server: HttpServer, *, is_weekly: bool):
         super().__init__(name=repo)
         self.repo = repo
+        self.is_weekly = is_weekly
         self.paths = Paths(repo)
         self.borg = Borg(repo)
         self.logger = get_logger(repo, 'borg_daily')
@@ -79,13 +86,11 @@ class ProcessRepo(Thread):
             self.logger.debug('Repo is disabled')
             return
 
-        is_weekly = datetime.now().astimezone().weekday() == TUESDAY
-
         auto_users = (u for u in get_config()['users'] if u['repo'] == self.repo and u.get('ssh'))
         try:
             for user in auto_users:
                 self.run_user(user)
-            if is_weekly:
+            if self.is_weekly:
                 self.set_waiting_for('run_weekly')
                 self.run_weekly()
         finally:
