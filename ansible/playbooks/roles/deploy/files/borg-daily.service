@@ -6,8 +6,9 @@ Wants=borg-daily.timer
 Type=exec
 User=borg
 Group=borg
-ExecStart=echo TODO
-# check, rsync, prune, smart
+ExecSearchPath=/home/borg/.local/bin/
+WorkingDirectory=/home/borg/tamborgcont/
+ExecStart=poetry -q run python -m daily.main
 
 [Install]
 WantedBy=multi-user.target

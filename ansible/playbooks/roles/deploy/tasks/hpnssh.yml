@@ -73,8 +73,6 @@
       dest: /usr/local/etc/hpnssh/
     - src: files/hpnssh.service
       dest: /etc/systemd/system/
-    - src: files/hpnssh.service.d
-      dest: /etc/systemd/system/
   become: true
 
 - name: Enable and start service

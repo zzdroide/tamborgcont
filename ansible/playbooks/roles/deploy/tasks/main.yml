@@ -37,15 +37,15 @@
       # Check Wake-on-LAN
       - ethtool
 
-      # Serve public info
-      - nginx
-
       # pipx for packages
       - pipx
 
       # ssh_pam_hook.sh
       - acpid
       - beep
+
+      # smarthealthc
+      - smartmontools
 
       # For systemd-python (https://github.com/systemd/python-systemd/#to-build-from-source)
       - libsystemd-dev
@@ -92,11 +92,6 @@
 
 - name: Setup zsh
   ansible.builtin.import_tasks: zsh.yml
-  vars:
-    ansible_become: true
-
-- name: Setup nginx
-  ansible.builtin.import_tasks: nginx.yml
   vars:
     ansible_become: true
 

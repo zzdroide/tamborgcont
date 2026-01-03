@@ -1,7 +1,7 @@
 import pytest
 
-from hook.constants import RC
 from hook.main import main
+from shared.constants import RC
 
 
 class TestInvalidUsage:

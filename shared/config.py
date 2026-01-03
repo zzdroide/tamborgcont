@@ -20,3 +20,11 @@ def get_config_from_pk(pk: str):
         return user['repo'], user['user']
     msg = f'No user with pubkey {pk}'
     raise ValueError(msg)
+
+
+def get_config_weekly_healthcheck():
+    return get_config()['weekly_healthcheck']
+
+
+def get_config_smarthealthc():
+    return get_config()['smarthealthc']

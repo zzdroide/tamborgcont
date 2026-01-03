@@ -5,124 +5,125 @@ import re
 import shutil
 import sys
 
-from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
-
-from shared import borg
+from shared.borg import Borg
 from shared.config import get_config_from_pk, get_config_repos
+from shared.constants import RC, Paths
+from shared.pubsub import PubSub
+from shared.utils import get_logger, mkdir_lock
 
-from .constants import RC, Paths
-from .utils import BadRepoError, get_logger, without_temp
+from .utils import BadRepoError, get_waiting_for, without_temp
 
-logger = get_logger()
+logger = get_logger(None, 'borg_ssh_hook')
 
 
-def check_repo(repo: str, user: str | None, *, release_on_restart=False):
-    if not release_on_restart:
-        logger.info(f'Checking repo {repo} for user {user}...')
+class Hook:
+    def __init__(self, repo: str):
+        self.repo = repo
+        self.paths = Paths(repo)
+        self.paths.repo_state.mkdir(parents=True, exist_ok=True)
+        self.borg = Borg(repo)
+        self.pubsub = PubSub(self.paths)
 
-        lock_user = Paths.lock_user.read_text()
-        if user != lock_user:
-            msg = f'User from pk is {user} but lock was taken by {lock_user}'
-            raise AssertionError(msg)
+    def check_repo(self, user: str | None, *, release_on_restart=False) -> int:
+        if not release_on_restart:
+            logger.info(f'Checking repo {self.repo} for user {user}...')
 
-        prev_arcs = without_temp(Paths.lock_prev_arcs.read_text(), user)
+            lock_user = self.paths.lock_user.read_text()
+            if user != lock_user:
+                msg = f'User from pk is {user} but lock was taken by {lock_user}'
+                raise AssertionError(msg)
 
-    else:
-        logger.info(f'Checking repo {repo} for release_on_restart...')
+            prev_arcs = without_temp(self.paths.lock_prev_arcs.read_text(), user)
 
-        try:
-            user = Paths.lock_user.read_text()
-            prev_arcs = without_temp(Paths.lock_prev_arcs.read_text(), user)
-        except FileNotFoundError as e:
-            # Lock was incompletely written, so no "borg serve" should have taken place.
-            # Anyway, can't check without any of those files.
-            logger.info('...but lock is incomplete. Skipping.', exc_info=e)
-            return
+        else:
+            logger.info(f'Checking repo {self.repo} for release_on_restart...')
 
-        # Note: `borg break-lock` is not used, because it's possible for borg-daily to be running.
+            try:
+                user = self.paths.lock_user.read_text()
+                prev_arcs = without_temp(self.paths.lock_prev_arcs.read_text(), user)
+            except FileNotFoundError as e:
+                # Lock was incompletely written, so no "borg serve" should have taken place.
+                # Anyway, can't check without any of those files.
+                logger.info('...but lock is incomplete. Skipping.', exc_info=e)
+                return 0
 
-    cur_arcs = without_temp(borg.dump_arcs(repo), user)
+            # Note: `borg break-lock` is not used, because it's possible for borg_daily to be running.
 
-    # Check that previous archives are intact, except for f'{user}(temp)'
-    if not cur_arcs.startswith(prev_arcs):
-        msg = 'Previous archives were modified!'
-        raise BadRepoError(msg)
+        cur_arcs = without_temp(self.borg.dump_arcs(), user)
 
-    # Check that new archives begin with user prefix (excluding f'{user}(temp)')
-    new_arcs = cur_arcs.replace(prev_arcs, '', 1)
-    while new_arcs:
-        _arc_id, _sep, new_arcs = new_arcs.partition('\x00')
-        arc_name, _sep, new_arcs = new_arcs.partition('\x00')
-        if not arc_name.startswith(user + '-'):
-            msg = f"Created [{arc_name}] that doesn't start with [{user}-]!"
+        # Check that previous archives are intact, except for f'{user}(temp)'
+        if not cur_arcs.startswith(prev_arcs):
+            msg = 'Previous archives were modified!'
             raise BadRepoError(msg)
 
-    logger.info('...OK')
+        # Check that new archives begin with user prefix (excluding f'{user}(temp)')
+        new_arcs = cur_arcs.replace(prev_arcs, '', 1)
+        new_count = 0
+        while new_arcs:
+            _arc_id, _sep, new_arcs = new_arcs.partition('\x00')
+            arc_name, _sep, new_arcs = new_arcs.partition('\x00')
+            if not arc_name.startswith(user + '-'):
+                msg = f"Created [{arc_name}] that doesn't start with [{user}-]!"
+                raise BadRepoError(msg)
+            new_count += 1
 
+        logger.info('...OK')
+        return new_count
 
-@retry(
-    retry=retry_if_exception_type(FileExistsError),
-    wait=wait_fixed(1),
-    stop=stop_after_attempt(4),
-    reraise=True,
-)
-def mkdir_lock():
-    """
-    When two ssh commands are executed consecutively,
-    the first close_session is executed about 0.5s after the second open_session.
-    So retry for 3s so the late hook can finish releasing.
-    """
-    Paths.lock.mkdir()
+    def acquire_lock(self, user: str):
+        logger.info(f'{user} is acquiring lock for {self.repo}...')
 
+        if not self.paths.repo_enabled.exists():
+            logger.warning('Repo access is disabled')
+            sys.exit(RC.access_denied)
 
-def acquire_lock(repo: str, user: str):
-    logger.info(f'{user} is acquiring lock for {repo}...')
+        waiting_for = get_waiting_for(self.repo)
+        if waiting_for and waiting_for != user:
+            logger.warning(f'Repo is waiting_for {waiting_for} instead')
+            sys.exit(RC.access_denied)
 
-    if not Paths.repo_enabled.exists():
-        logger.warning('Repo access is disabled')
-        sys.exit(RC.access_denied)
+        if not self.borg.is_repo_unlocked():
+            logger.warning('Underlying repo is locked')
+            sys.exit(RC.access_denied)
 
-    if not borg.is_repo_unlocked(repo):
-        logger.warning('Underlying repo is locked')
-        sys.exit(RC.access_denied)
-
-    try:
-        mkdir_lock()
-    except FileExistsError:
-        logger.warning(f'Repo is locked by user {Paths.lock_user.read_text()}')
-        # Note: there's a small window for lock_user read to fail. Ignore.
-        sys.exit(RC.access_denied)
-
-    Paths.lock_user.write_text(user)
-    Paths.lock_prev_arcs.write_text(borg.dump_arcs(repo))
-    logger.info('...OK')
-
-
-def release_lock(repo: str, user: str):
-    try:
-        check_repo(repo, user)
-        shutil.rmtree(Paths.lock)
-    except Exception:
-        logger.exception('Error releasing lock')
-        sys.exit(RC.generic_error)
-
-
-def release_lock_on_restart():
-    repos = get_config_repos()
-
-    for repo in repos:
-        Paths.set_repo_name(repo)
-        is_enabled = Paths.repo_enabled.exists()
-        if not is_enabled:
-            continue
-        is_locked = Paths.lock.is_dir()
-        if not is_locked:
-            continue
         try:
-            check_repo(repo, None, release_on_restart=True)
-            shutil.rmtree(Paths.lock)
+            mkdir_lock(self.paths)
+        except FileExistsError:
+            logger.warning(f'Repo is locked by user {self.paths.lock_user.read_text()}')
+            # Note: there's a small window for lock_user read to fail. Ignore.
+            sys.exit(RC.access_denied)
+
+        self.paths.lock_user.write_text(user)
+        self.paths.lock_prev_arcs.write_text(self.borg.dump_arcs())
+        self.pubsub.publish(f'lock_acquired {user}')
+        logger.info('...OK')
+
+    def release_lock(self, user: str):
+        try:
+            new_arcs_count = self.check_repo(user)
+            shutil.rmtree(self.paths.lock)
+            self.pubsub.publish(f'lock_released {user} {new_arcs_count}')
         except Exception:
             logger.exception('Error releasing lock')
+            sys.exit(RC.generic_error)
+
+    def release_lock_on_restart(self):
+        is_enabled = self.paths.repo_enabled.exists()
+        if not is_enabled:
+            return
+        is_locked = self.paths.lock.is_dir()
+        if not is_locked:
+            return
+        try:
+            self.check_repo(None, release_on_restart=True)
+            shutil.rmtree(self.paths.lock)
+        except Exception:
+            logger.exception(f'Error releasing lock on restart for repo {self.repo}')
+
+    def release_locks_on_restart():
+        for repo in get_config_repos():
+            hook = Hook(repo)
+            hook.release_lock_on_restart()
 
 
 def main(argv):
@@ -148,7 +149,7 @@ def main(argv):
 
     hook_src = argv[1] if len(argv) > 1 else None
     if hook_src == 'tamborg-release-lock':
-        release_lock_on_restart()
+        Hook.release_locks_on_restart()
         return
     if hook_src != 'pam':
         logger.error(f'Invalid hook_src: {hook_src}')
@@ -162,15 +163,14 @@ def main(argv):
         logger.exception(f'Failed to get user from pubkey. $SSH_AUTH_INFO_0: {ssh_auth_info!r}')
         sys.exit(RC.invalid_usage)
 
-    Paths.set_repo_name(repo)
-    Paths.repo_state.mkdir(parents=True, exist_ok=True)
+    hook = Hook(repo)
 
     pam_type = os.environ.get('PAM_TYPE')
     match pam_type:
         case 'open_session':
-            acquire_lock(repo, user)
+            hook.acquire_lock(user)
         case 'close_session':
-            release_lock(repo, user)
+            hook.release_lock(user)
         case _:
             logger.error(f'Bad $PAM_TYPE: [{pam_type}]')
             sys.exit(RC.invalid_usage)

@@ -55,6 +55,14 @@
 - name: Set ext4 reserved space
   ansible.builtin.script: ext4_reserve.sh 2G /
 
+- name: Add sudoers for borg smartctl
+  ansible.builtin.copy:
+    dest: /etc/sudoers.d/borg-smartctl
+    content: "borg ALL=(root) NOPASSWD: /usr/sbin/smartctl -HA --json=c /dev/disk/by-id/*\n"
+    owner: root
+    group: root
+    mode: "0440"
+
 - name: Check if firmware-realtek could be useful
   ansible.builtin.shell:
     cmd: 'set -o pipefail && dmesg | grep -q " firmware: failed to load rtl_nic/"'

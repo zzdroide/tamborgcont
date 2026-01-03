@@ -1,9 +1,10 @@
 import pytest
 
-from hook import main
-from hook.constants import RC, Paths
+from hook.main import Hook, main
 from hook.utils import BadRepoError, arcs2str
-from shared import borg, config
+from shared import config
+from shared.borg import Borg
+from shared.constants import RC, Paths
 
 
 class TestReleaseLock:
@@ -12,66 +13,66 @@ class TestReleaseLock:
         monkeypatch.setenv('PAM_TYPE', 'close_session')
 
     @pytest.fixture
-    def locked_repo(self):
-        Paths.lock.mkdir()
+    def locked_repo(self, paths: Paths):
+        paths.lock.mkdir()
 
     @pytest.mark.usefixtures('locked_repo')
-    def test_pam_check_repo_ok_effect(self, monkeypatch):
-        monkeypatch.setattr(main, 'check_repo', lambda _repo, _user: None)
-        main.main(['main.py', 'pam'])
-        assert not Paths.lock.is_dir()
+    def test_pam_check_repo_ok_effect(self, monkeypatch, paths: Paths):
+        monkeypatch.setattr(Hook, 'check_repo', lambda _self, _user: None)
+        main(['main.py', 'pam'])
+        assert not paths.lock.is_dir()
 
     @pytest.mark.usefixtures('locked_repo')
-    def test_restart_check_repo_ok_effect(self, monkeypatch):
-        monkeypatch.setattr(main, 'check_repo', lambda *_args, **_kwargs: None)
-        main.main(['main.py', 'tamborg-release-lock'])
-        assert not Paths.lock.is_dir()
+    def test_restart_check_repo_ok_effect(self, monkeypatch, paths: Paths):
+        monkeypatch.setattr(Hook, 'check_repo', lambda *_args, **_kwargs: None)
+        main(['main.py', 'tamborg-release-lock'])
+        assert not paths.lock.is_dir()
 
     @pytest.mark.usefixtures('locked_repo')
-    def test_check_repo_nok_effect(self, monkeypatch):
-        def raise_badrepoerror(*_args, **_kwargs):
+    def test_check_repo_nok_effect(self, monkeypatch, paths: Paths):
+        def raise_badrepoerror(_self, _user):
             raise BadRepoError
-        monkeypatch.setattr(main, 'check_repo', raise_badrepoerror)
+        monkeypatch.setattr(Hook, 'check_repo', raise_badrepoerror)
 
         with pytest.raises(SystemExit) as e:
-            main.main(['main.py', 'pam'])
+            main(['main.py', 'pam'])
         assert e.value.code == RC.generic_error
-        assert Paths.lock.is_dir()
+        assert paths.lock.is_dir()
 
-        main.main(['main.py', 'tamborg-release-lock'])
-        Paths.set_repo_name('TAM')
-        assert Paths.lock.is_dir()
+        main(['main.py', 'tamborg-release-lock'])
+        assert paths.lock.is_dir()
 
     @pytest.fixture
-    def locked_by_user1(self, monkeypatch, locked_repo):  # noqa: ARG002
-        Paths.lock_user.write_text('user1')
+    def locked_by_user1(self, monkeypatch, locked_repo, paths: Paths):  # noqa: ARG002
+        paths.lock_user.write_text('user1')
         monkeypatch.setattr(config, 'get_config_from_pk', lambda _: ('TAM', 'user1'))
 
-    def write_prev_arcs(self, arcs):
-        Paths.lock_prev_arcs.write_text(arcs2str(arcs))
+    def write_prev_arcs(self, paths: Paths, arcs):
+        paths.lock_prev_arcs.write_text(arcs2str(arcs))
 
     def check_repo(self):
-        main.check_repo('TAM', 'user1')
+        hook = Hook('TAM')
+        hook.check_repo('user1')
 
     @pytest.mark.usefixtures('locked_by_user1')
-    def test_allow_first_temp_rename(self, monkeypatch):
-        self.write_prev_arcs((
+    def test_allow_first_temp_rename(self, monkeypatch, paths: Paths):
+        self.write_prev_arcs(paths, (
             ('id1', 'user1(temp)'),
         ))
 
-        monkeypatch.setattr(borg, 'dump_arcs', lambda _: arcs2str((
+        monkeypatch.setattr(Borg, 'dump_arcs', lambda _self: arcs2str((
             ('id2', 'user1-asdf'),
         )))
         self.check_repo()
 
     @pytest.mark.usefixtures('locked_by_user1')
-    def test_allow_self_temp_delete(self, monkeypatch):
-        self.write_prev_arcs((
+    def test_allow_self_temp_delete(self, monkeypatch, paths: Paths):
+        self.write_prev_arcs(paths, (
             ('id1', 'user1-asdf'),
             ('id2', 'user1(temp)'),
         ))
 
-        monkeypatch.setattr(borg, 'dump_arcs', lambda _: arcs2str((
+        monkeypatch.setattr(Borg, 'dump_arcs', lambda _self: arcs2str((
             ('id1', 'user1-asdf'),
         )))
         self.check_repo()
@@ -87,25 +88,25 @@ class TestReleaseLock:
         assert "] that doesn't start with [" in e.value.args[0]
 
     @pytest.mark.usefixtures('locked_by_user1')
-    def test_check_modified_arcs(self, monkeypatch):
-        self.write_prev_arcs((
+    def test_check_modified_arcs(self, monkeypatch, paths: Paths):
+        self.write_prev_arcs(paths, (
             ('id0', 'user0(temp)'),
             ('id1', 'user1-asdf'),
             ('id2', 'user2-asdf'),
             ('id3', 'user1-asdf'),
         ))
 
-        monkeypatch.setattr(borg, 'dump_arcs', lambda _: '')
+        monkeypatch.setattr(Borg, 'dump_arcs', lambda _self: '')
         self.assert_prev_were_modified()
 
-        monkeypatch.setattr(borg, 'dump_arcs', lambda _: arcs2str((
+        monkeypatch.setattr(Borg, 'dump_arcs', lambda _self: arcs2str((
             ('id0', 'user0(temp)'),
             ('id1', 'user1-asdf'),
             ('id3', 'user1-asdf'),
         )))
         self.assert_prev_were_modified()
 
-        monkeypatch.setattr(borg, 'dump_arcs', lambda _: arcs2str((
+        monkeypatch.setattr(Borg, 'dump_arcs', lambda _self: arcs2str((
             ('id0', 'user0(temp)'),
             ('id1', 'user1-asdf'),
             ('id0', 'user2-asdf'),
@@ -113,7 +114,7 @@ class TestReleaseLock:
         )))
         self.assert_prev_were_modified()
 
-        monkeypatch.setattr(borg, 'dump_arcs', lambda _: arcs2str((
+        monkeypatch.setattr(Borg, 'dump_arcs', lambda _self: arcs2str((
             ('id0', 'user0(temp)'),
             ('id1', 'user1-asdf'),
             ('id2', 'user2-asdg'),
@@ -121,7 +122,7 @@ class TestReleaseLock:
         )))
         self.assert_prev_were_modified()
 
-        monkeypatch.setattr(borg, 'dump_arcs', lambda _: arcs2str((
+        monkeypatch.setattr(Borg, 'dump_arcs', lambda _self: arcs2str((
             ('id0', 'user0(temp)'),
             ('id1', 'user1-asdf'),
             ('id3', 'user1-asdf'),
@@ -129,7 +130,7 @@ class TestReleaseLock:
         )))
         self.assert_prev_were_modified()
 
-        monkeypatch.setattr(borg, 'dump_arcs', lambda _: arcs2str((
+        monkeypatch.setattr(Borg, 'dump_arcs', lambda _self: arcs2str((
             ('id0', 'user0(temp)'),
             ('id1', 'user1-asdf'),
             ('id0', 'user2-asdf'),
@@ -138,7 +139,7 @@ class TestReleaseLock:
         )))
         self.assert_prev_were_modified()
 
-        monkeypatch.setattr(borg, 'dump_arcs', lambda _: arcs2str((
+        monkeypatch.setattr(Borg, 'dump_arcs', lambda _self: arcs2str((
             ('id0', 'user0(temp)'),
             ('id1', 'user1-asdf'),
             ('id2', 'user2-asdg'),
@@ -147,7 +148,7 @@ class TestReleaseLock:
         )))
         self.assert_prev_were_modified()
 
-        monkeypatch.setattr(borg, 'dump_arcs', lambda _: arcs2str((
+        monkeypatch.setattr(Borg, 'dump_arcs', lambda _self: arcs2str((
             ('id1', 'user1-asdf'),
             ('id2', 'user2-asdf'),
             ('id3', 'user1-asdf'),
@@ -155,35 +156,35 @@ class TestReleaseLock:
         self.assert_prev_were_modified()
 
     @pytest.mark.usefixtures('locked_by_user1')
-    def test_check_new_prefix(self, monkeypatch):
-        self.write_prev_arcs((
+    def test_check_new_prefix(self, monkeypatch, paths: Paths):
+        self.write_prev_arcs(paths, (
             ('id1', 'user1-asdf'),
         ))
 
-        monkeypatch.setattr(borg, 'dump_arcs', lambda _: arcs2str((
+        monkeypatch.setattr(Borg, 'dump_arcs', lambda _self: arcs2str((
             ('id1', 'user1-asdf'),
         )))
         self.check_repo()
 
-        monkeypatch.setattr(borg, 'dump_arcs', lambda _: arcs2str((
+        monkeypatch.setattr(Borg, 'dump_arcs', lambda _self: arcs2str((
             ('id1', 'user1-asdf'),
             ('id2', 'user1(temp)'),
         )))
         self.check_repo()
 
-        monkeypatch.setattr(borg, 'dump_arcs', lambda _: arcs2str((
+        monkeypatch.setattr(Borg, 'dump_arcs', lambda _self: arcs2str((
             ('id1', 'user1-asdf'),
             ('id2', 'user2(temp)'),
         )))
         self.assert_bad_new_archive()
 
-        monkeypatch.setattr(borg, 'dump_arcs', lambda _: arcs2str((
+        monkeypatch.setattr(Borg, 'dump_arcs', lambda _self: arcs2str((
             ('id1', 'user1-asdf'),
             ('id2', 'user1-asdf'),
         )))
         self.check_repo()
 
-        monkeypatch.setattr(borg, 'dump_arcs', lambda _: arcs2str((
+        monkeypatch.setattr(Borg, 'dump_arcs', lambda _self: arcs2str((
             ('id1', 'user1-asdf'),
             ('id2', 'user1-asdf'),
             ('id3', 'user1-asdf'),
@@ -191,13 +192,13 @@ class TestReleaseLock:
         )))
         self.check_repo()
 
-        monkeypatch.setattr(borg, 'dump_arcs', lambda _: arcs2str((
+        monkeypatch.setattr(Borg, 'dump_arcs', lambda _self: arcs2str((
             ('id1', 'user1-asdf'),
             ('id2', 'user2-asdf'),
         )))
         self.assert_bad_new_archive()
 
-        monkeypatch.setattr(borg, 'dump_arcs', lambda _: arcs2str((
+        monkeypatch.setattr(Borg, 'dump_arcs', lambda _self: arcs2str((
             ('id1', 'user1-asdf'),
             ('id2', 'user1-asdf'),
             ('id3', 'user2-asdf'),

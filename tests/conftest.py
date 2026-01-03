@@ -9,8 +9,9 @@ import sh
 import yaml
 from tenacity import wait_fixed
 
-from hook.constants import Paths
+import hook
 from shared import borg, config
+from shared.constants import Paths
 
 
 def mkfile(path: Path):
@@ -25,17 +26,22 @@ def use_test_config(monkeypatch):
     monkeypatch.setattr(config, 'get_config', lambda: test_config)
 
 
+@pytest.fixture
+def paths():
+    return Paths('TAM')
+
+
 @pytest.fixture(autouse=True)
 def default_state(
     monkeypatch,
     use_test_config,  # Load with relative path before chdir  # noqa: ARG001
+    paths: Paths,
 ):
     with tempfile.TemporaryDirectory() as newpath:
         old_cwd = Path.cwd()
         os.chdir(newpath)
-        Paths.set_repo_name('TAM')
-        Paths.repo_state.mkdir(parents=True)
-        mkfile(Paths.repo_enabled)
+        paths.repo_state.mkdir(parents=True)
+        mkfile(paths.repo_enabled)
         monkeypatch.setenv('SSH_AUTH_INFO_0', 'publickey ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEEzh7eIUFgJy/CLTHN+B0wlq3QK0aTZz/0FVfKCtdA0\n')
         yield
         os.chdir(old_cwd)
@@ -52,7 +58,7 @@ class PreventSh:
             return attr
         return self
 
-    def __call__(self, *_args):
+    def __call__(self, *_args, **_kwargs):
         msg = 'Prevented sh call'
         raise Exception(msg)
 
@@ -72,3 +78,9 @@ def disable_logger():
 @pytest.fixture(autouse=True)
 def tenacity_zero_wait(monkeypatch):
     monkeypatch.setattr(wait_fixed, '__call__', lambda _self, _: 0)
+
+
+@pytest.fixture(autouse=True)
+def none_waiting_for(monkeypatch):
+    monkeypatch.setattr(hook.utils, 'get_waiting_for', lambda _repo: None)
+    monkeypatch.setattr(hook.main, 'get_waiting_for', lambda _repo: None)

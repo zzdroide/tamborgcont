@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-import logging
-import sys
-
-from systemd import journal
+import requests
+from requests.adapters import HTTPAdapter
+from requests.exceptions import RequestException
 
 
 def arcs2str(arcs: list):
@@ -28,20 +27,21 @@ def without_temp(arcs: list | str, user: str):
     )
 
 
-def get_logger():
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
-
-    journal_handler = journal.JournalHandler(SYSLOG_IDENTIFIER='borg_ssh_hook')
-    journal_handler.setLevel(logging.INFO)
-    logger.addHandler(journal_handler)
-
-    stderr_handler = logging.StreamHandler(sys.stderr)
-    stderr_handler.setLevel(logging.WARNING)
-    logger.addHandler(stderr_handler)
-
-    return logger
-
-
 class BadRepoError(Exception):
     pass
+
+
+session = requests.Session()
+adapter = HTTPAdapter(max_retries=0)
+session.mount('http://', adapter)
+
+
+def get_waiting_for(repo: str):
+    """Just a convenience. Not for security because http server can be trivially DoSed."""
+    try:
+        r = session.get(f'http://127.0.0.1:8087/{repo}', timeout=1)
+        r.raise_for_status()
+        r.encoding = 'utf-8'
+        return r.text.strip()
+    except RequestException:
+        return None

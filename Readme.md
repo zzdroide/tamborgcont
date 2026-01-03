@@ -6,8 +6,6 @@ The backup server itself has no backup, so if a restore is needed:
 - Restore repository from remote backup
 - Previous ssh private keys will be lost, new ones will have to be configured.
 
-Changes in config.yml should be committed.
-
 ## Local setup
 ```sh
 sudo add-apt-repository ppa:deadsnakes/ppa && sudo apt update && sudo apt install python3.13
@@ -42,7 +40,7 @@ Note: autosuspend is enabled in Vagrant too. If `molecule login` hangs, reset th
 And from local, deploy to server with:
 ```sh
 cd ansible
-ANSIBLE_PIPELINING=True ANSIBLE_CALLBACK_RESULT_FORMAT=yaml poetry run ansible-playbook -i t@192.168.0.63, -l t@192.168.0.63 --ask-become-pass playbooks/deploy.yml
+ANSIBLE_PIPELINING=True ANSIBLE_CALLBACK_RESULT_FORMAT=yaml poetry run ansible-playbook -i t@10.0.0.20, -l t@10.0.0.20 --ask-become-pass playbooks/deploy.yml
 ```
 
 Some manual interactive setup after it finishes:
@@ -67,22 +65,21 @@ cp ~/tamborgcont/env.example TAM
 nano TAM
 
 popd
+cp config.test.yml config.yml
+nano config.yml
 ./update_authorized_keys.sh
 
 md state/TAM
 touch state/TAM/enabled
 ```
 
-To edit users:
+To edit users later:
 ```sh
 nano config.yml
-git add --all
-git commit
-git push
 ./update_authorized_keys.sh
 ```
 
 ### Watching logs
 ```sh
-sudo journalctl -ft sshd -t borg_ssh_hook
+sudo journalctl -ft sshd -t borg_ssh_hook -t borg_daily
 ```
