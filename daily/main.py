@@ -142,7 +142,12 @@ class ProcessRepo(Thread):
 
         def on_check_output_line(line: str):
             self.logger.debug(f'borg check: {line}')
-        self.borg.check(on_check_output_line)
+        try:
+            self.borg.check(on_check_output_line)
+        except sh.ErrorReturnCode as e:
+            self.logger.info('Append-only rollback instructions: https://borgbackup.readthedocs.io/en/stable/usage/notes.html#append-only-mode-forbid-compaction')
+            msg = f'borg check failed with rc={e.exit_code}'
+            raise RuntimeError(msg) from None
 
         # TODO: rsync
         # TODO: prune
