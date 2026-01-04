@@ -1,6 +1,6 @@
 # This is not the most logical way to structure the data, but it's easy to loop in ansible.
 users:
-  - user: TAM_2009          # No dashes allowed in username
+  - user: TAM_2009          # No dashes allowed in username. Must be quoted if all numbers.
     pubkey: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEEzh7eIUFgJy/CLTHN+B0wlq3QK0aTZz/0FVfKCtdA0
     repo: TAM
     ssh: t@10.0.0.100       # For automatic backups by borg-daily
