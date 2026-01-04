@@ -1,4 +1,4 @@
-- name: Disable SSH PasswordAuthentication and time out clients
+- name: Configure sshd_config
   ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
     regexp: "{{ item.regexp }}"
@@ -17,6 +17,12 @@
     name: sshd
     state: restarted
   when: sshd_config_edit.changed
+
+- name: Configure ssh_config
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/ssh_config
+    regexp: "^#? *StrictHostKeyChecking "
+    line: "    StrictHostKeyChecking accept-new  # So that no intervention is required for ssh ... tamborgmatic-auto"
 
 - name: Set en_US.UTF-8 locale
   ansible.builtin.include_role:
