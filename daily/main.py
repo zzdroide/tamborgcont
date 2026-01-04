@@ -3,7 +3,6 @@ from __future__ import annotations
 import shutil
 from datetime import datetime
 from threading import Thread
-from typing import NamedTuple
 
 import sh
 import wakeonlan
@@ -100,7 +99,7 @@ class ProcessRepo(Thread):
         self.logger.debug(f'Waiting for {user['user']}')
         self.set_waiting_for(user['user'])
 
-        ssh_cfg = parse_ssh_config(user['ssh'])
+        ssh_cfg = SshConfig(user['ssh'])
         started = ssh_tamborgmatic_auto(ssh_cfg)
 
         if not started:
@@ -156,21 +155,23 @@ class ProcessRepo(Thread):
         self.logger.debug('run_weekly: success')
 
 
-class SshConfig(NamedTuple):
+class SshConfig:
     user: str
     host: str
     port: str | None
 
+    def __init__(self, ssh_config: str):
+        if '@' not in ssh_config:
+            msg = f'Invalid SSH config format: {ssh_config}'
+            raise ValueError(msg)
 
-def parse_ssh_config(ssh_config: str) -> SshConfig:
-    if '@' not in ssh_config:
-        msg = f'Invalid SSH config format: {ssh_config}'
-        raise ValueError(msg)
+        user_host, *port_part = ssh_config.rsplit(':', 1)
+        user, host = user_host.rsplit('@', 1)
+        port = port_part[0] if port_part else None
 
-    user_host, *port_part = ssh_config.rsplit(':', 1)
-    user, host = user_host.rsplit('@', 1)
-    port = port_part[0] if port_part else None
-    return SshConfig(user=user, host=host, port=port)
+        self.user = user
+        self.host = host
+        self.port = port
 
 
 def ssh_tamborgmatic_auto(ssh_cfg: SshConfig):
