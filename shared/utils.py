@@ -7,19 +7,19 @@ from systemd import journal
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 
-def get_logger(name: str | None, syslog_identifier: str):
+def get_logger(name: str, syslog_identifier: str | None = None):
     logger = logging.getLogger(name)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
     logger.propagate = False  # Prevent propagation to root logger to avoid duplicate output
 
     # Only add handlers if they don't already exist
     if len(logger.handlers) == 0:
-        journal_handler = journal.JournalHandler(SYSLOG_IDENTIFIER=syslog_identifier)
-        journal_handler.setLevel(logging.INFO)
+        journal_handler = journal.JournalHandler(SYSLOG_IDENTIFIER=syslog_identifier or name)
+        journal_handler.setLevel(logging.DEBUG)
         logger.addHandler(journal_handler)
 
         stderr_handler = logging.StreamHandler(sys.stderr)
-        stderr_handler.setLevel(logging.WARNING)
+        stderr_handler.setLevel(logging.DEBUG)
         logger.addHandler(stderr_handler)
 
     return logger

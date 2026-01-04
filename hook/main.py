@@ -13,7 +13,7 @@ from shared.utils import get_logger, mkdir_lock
 
 from .utils import BadRepoError, get_waiting_for, without_temp
 
-logger = get_logger(None, 'borg_ssh_hook')
+logger = get_logger('borg_ssh_hook')
 
 
 class Hook:

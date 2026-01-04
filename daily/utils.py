@@ -4,7 +4,7 @@ import requests
 
 from shared.utils import get_logger
 
-logger = get_logger(None, 'borg_daily')
+logger = get_logger('borg_daily')
 
 
 def hc_ping(url: str, data: str | None = None):
