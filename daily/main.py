@@ -100,9 +100,10 @@ class ProcessRepo(Thread):
         self.set_waiting_for(user['user'])
 
         ssh_cfg = SshConfig(user['ssh'])
-        started = ssh_tamborgmatic_auto(ssh_cfg)
+        started, ssh_error = ssh_tamborgmatic_auto(ssh_cfg)
 
         if not started:
+            wol_timed_out = False
             if user.get('mac'):
                 wol(ssh_cfg, user['mac'])
                 # Wait for on_auto_backup.sh signal:
@@ -111,9 +112,14 @@ class ProcessRepo(Thread):
                 if started:
                     self.pubsub.wait_for(prefix=f'lock_released {user['user']} ')
                     self.logger.debug(f"WOL {user['user']}: success")
+                else:
+                    wol_timed_out = True
 
             if not started:
                 self.logger.warning(f"Couldn't start tamborgmatic-auto.service on {user['user']}")
+                self.logger.warning(f'- SSH: {ssh_error}')
+                if wol_timed_out:
+                    self.logger.warning('- WOL timed out')
                 return
 
         new_arcs_count = 0
@@ -183,11 +189,11 @@ def ssh_tamborgmatic_auto(ssh_cfg: SshConfig):
             *ssh_opts,
             f'{ssh_cfg.user}@{ssh_cfg.host}',
             'systemctl --user start tamborgmatic-auto.service',
-            _no_out=True,
+            _err_to_out=True,
         )
-        return True
-    except sh.ErrorReturnCode:
-        return False
+        return True, ''
+    except sh.ErrorReturnCode as e:
+        return False, e.stdout.decode().strip()
 
 
 def wol(ssh_cfg: SshConfig, mac: str):
