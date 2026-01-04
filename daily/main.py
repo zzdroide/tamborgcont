@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import shutil
 from datetime import datetime
 from threading import Thread
@@ -57,7 +58,7 @@ class ProcessRepo(Thread):
         self.is_weekly = is_weekly
         self.paths = Paths(repo)
         self.borg = Borg(repo)
-        self.logger = get_logger(repo, 'borg_daily')
+        self.logger = get_logger(name=repo, syslog_identifier='borg_daily', stderr_level=logging.DEBUG)
         self.pubsub = PubSub(self.paths)
         self.exception: Exception | None = None
 

@@ -7,7 +7,7 @@ from systemd import journal
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 
-def get_logger(name: str, syslog_identifier: str | None = None):
+def get_logger(*, name: str, syslog_identifier: str | None = None, stderr_level: int):
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
     logger.propagate = False  # Prevent propagation to root logger to avoid duplicate output
@@ -19,7 +19,7 @@ def get_logger(name: str, syslog_identifier: str | None = None):
         logger.addHandler(journal_handler)
 
         stderr_handler = logging.StreamHandler(sys.stderr)
-        stderr_handler.setLevel(logging.DEBUG)
+        stderr_handler.setLevel(stderr_level)
         logger.addHandler(stderr_handler)
 
     return logger

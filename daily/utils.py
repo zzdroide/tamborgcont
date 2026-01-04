@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import logging
+
 import requests
 
 from shared.utils import get_logger
 
-logger = get_logger('borg_daily')
+logger = get_logger(name='borg_daily', stderr_level=logging.DEBUG)
 
 
 def hc_ping(url: str, data: str | None = None):

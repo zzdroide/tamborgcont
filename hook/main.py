@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import os
 import re
 import shutil
@@ -13,7 +14,13 @@ from shared.utils import get_logger, mkdir_lock
 
 from .utils import BadRepoError, get_waiting_for, without_temp
 
-logger = get_logger('borg_ssh_hook')
+logger = get_logger(
+    name='borg_ssh_hook',
+    # Output breaks borg with: Got unexpected RPC data format from server: <message>
+    # So on access granted, log up to INFO only.
+    # On access denied, you can output whatever you want.
+    stderr_level=logging.WARNING,
+)
 
 
 class Hook:
@@ -177,4 +184,11 @@ def main(argv):
 
 
 if __name__ == '__main__':
+    # When an uncaught exception is raised, it's sent to stderr,
+    # but borg prints just the first characters of it so it's useless.
+    # Ensure they are logged to systemd journal:
+    def excepthook(exc_type, exc_value, exc_tb):
+        logger.error('', exc_info=(exc_type, exc_value, exc_tb))
+    sys.excepthook = excepthook
+
     main(sys.argv)
