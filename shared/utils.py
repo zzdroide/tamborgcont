@@ -10,14 +10,17 @@ from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fi
 def get_logger(name: str | None, syslog_identifier: str):
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
+    logger.propagate = False  # Prevent propagation to root logger to avoid duplicate output
 
-    journal_handler = journal.JournalHandler(SYSLOG_IDENTIFIER=syslog_identifier)
-    journal_handler.setLevel(logging.INFO)
-    logger.addHandler(journal_handler)
+    # Only add handlers if they don't already exist
+    if len(logger.handlers) == 0:
+        journal_handler = journal.JournalHandler(SYSLOG_IDENTIFIER=syslog_identifier)
+        journal_handler.setLevel(logging.INFO)
+        logger.addHandler(journal_handler)
 
-    stderr_handler = logging.StreamHandler(sys.stderr)
-    stderr_handler.setLevel(logging.WARNING)
-    logger.addHandler(stderr_handler)
+        stderr_handler = logging.StreamHandler(sys.stderr)
+        stderr_handler.setLevel(logging.WARNING)
+        logger.addHandler(stderr_handler)
 
     return logger
 
