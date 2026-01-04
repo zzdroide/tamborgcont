@@ -97,13 +97,15 @@ class ProcessRepo(Thread):
             self.set_waiting_for(None)
 
     def run_user(self, user):
-        self.logger.debug(f'Waiting for {user['user']}')
+        self.logger.debug(f'{user['user']}: waiting_for')
         self.set_waiting_for(user['user'])
 
         ssh_cfg = SshConfig(user['ssh'])
         started, ssh_error = ssh_tamborgmatic_auto(ssh_cfg)
 
-        if not started:
+        if started:
+            self.logger.debug(f'{user['user']}: started by ssh')
+        else:
             wol_timed_out = False
             if user.get('mac'):
                 wol(ssh_cfg, user['mac'])
@@ -112,7 +114,7 @@ class ProcessRepo(Thread):
 
                 if started:
                     self.pubsub.wait_for(prefix=f'lock_released {user['user']} ')
-                    self.logger.debug(f"WOL {user['user']}: success")
+                    self.logger.debug(f'{user['user']}: WOL success')
                 else:
                     wol_timed_out = True
 
@@ -139,7 +141,7 @@ class ProcessRepo(Thread):
         self.logger.debug(f'{user['user']}: success')
 
     def run_weekly(self):
-        self.logger.debug('run_weekly started')
+        self.logger.debug('run_weekly: started')
         try:
             mkdir_lock(self.paths)
         except FileExistsError:
