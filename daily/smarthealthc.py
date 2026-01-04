@@ -47,4 +47,4 @@ def process_disk(disk: str):
             logger.error(msg)
             return '/fail', msg
 
-    return '/', None  # Success
+    return '0', None  # Success

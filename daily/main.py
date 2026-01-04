@@ -48,7 +48,7 @@ def main():
         weekly_ping('fail', str(e))
         raise
     else:
-        weekly_ping('')  # Success
+        weekly_ping('0')  # Success
 
 
 class ProcessRepo(Thread):
