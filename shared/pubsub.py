@@ -47,13 +47,16 @@ class PubSub(Thread):
         *,
         prefix: str | None = None,
         match: str | None = None,
-        timeout: float = float('inf'),  # in seconds
+        timeout: float | None = None,  # in seconds; None => wait forever
     ):
-        deadline = time.monotonic() + timeout
+        deadline = None if timeout is None else time.monotonic() + timeout
+        remaining = None
+
         while True:
-            remaining = deadline - time.monotonic()
-            if remaining <= 0:
-                return None
+            if deadline is not None:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    return None
             try:
                 message = self.sub_queue.get(timeout=remaining)
             except Empty:
