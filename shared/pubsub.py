@@ -20,9 +20,9 @@ class PubSub(Thread):
         super().__init__(daemon=True, name=str(paths.pubsub))
         self.paths = paths
         self.sub_queue = Queue[str]()
-
         with contextlib.suppress(FileExistsError):
             os.mkfifo(self.paths.pubsub)
+        self.start()
 
     def publish(self, message: str):
         try:
