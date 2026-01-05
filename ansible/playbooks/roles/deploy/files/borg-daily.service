@@ -1,6 +1,5 @@
 [Unit]
 Description=Borg daily routine
-Wants=borg-daily.timer
 
 [Service]
 Type=exec
@@ -10,6 +9,3 @@ ExecSearchPath=/home/borg/.local/bin/
 WorkingDirectory=/home/borg/tamborgcont/
 ExecStart=poetry -q run python -m daily.main
 Environment="PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin"
-
-[Install]
-WantedBy=multi-user.target
