@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 import requests
 from requests.adapters import HTTPAdapter
 from requests.exceptions import RequestException
@@ -22,8 +24,10 @@ def arcs2list(dump: str):
 def without_temp(arcs: list | str, user: str):
     if isinstance(arcs, str):
         arcs = arcs2list(arcs)
+    # Exclude temp archives and their checkpoints: {user}(temp), {user}(temp).checkpoint, {user}(temp).checkpoint.N
+    pattern = re.compile(rf'^{user}\(temp\)(\.checkpoint(\.\d+)?)?$')
     return arcs2str(
-        [arc for arc in arcs if arc[1] != f'{user}(temp)']
+        [arc for arc in arcs if not pattern.match(arc[1])]
     )
 
 
