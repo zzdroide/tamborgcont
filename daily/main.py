@@ -159,6 +159,7 @@ class ProcessRepo(Thread):
 
         # TODO: rsync
         # TODO: prune
+        # TODO: compact
 
         shutil.rmtree(self.paths.lock)
         self.logger.debug('run_weekly: success')
