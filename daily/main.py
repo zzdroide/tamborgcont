@@ -160,6 +160,11 @@ class ProcessRepo(Thread):
         # TODO: rsync
         # TODO: prune
         # TODO: compact
+        # high threshold https://github.com/borgbackup/borg/issues/635
+        # usage of restored repo: https://borgbackup.readthedocs.io/en/stable/faq.html#can-i-copy-or-synchronize-my-repo-to-another-location
+        # rsync a hardlinked copy is safe:
+        # - "[segments] are strictly append-only and modified only once."  https://borgbackup.readthedocs.io/en/stable/internals/data-structures.html#segments
+        # - https://github.com/borgbackup/borg/commit/4a2ab496e09b5feb5dcdb326f0c56aba1563e7ed#diff-57498cd583e81bed522aee757fb13023a9a6f99b343af93c6082f4da1bec69a0R228-R229
 
         shutil.rmtree(self.paths.lock)
         self.logger.debug('run_weekly: success')
