@@ -32,6 +32,7 @@ Note: autosuspend is enabled in Vagrant too. If `molecule login` hangs, reset th
 ## Server setup
 
 - Install Debian trixie
+  - with ext4 `largefile`
   - with a strong password because SSH PasswordAuthentication defaults to yes
   - with "SSH server" and "standard system utilities" software
 - Set static IP (preferably at the router, against MAC)
@@ -46,6 +47,9 @@ ANSIBLE_PIPELINING=True ANSIBLE_CALLBACK_RESULT_FORMAT=yaml poetry run ansible-p
 Some manual interactive setup after it finishes:
 ```sh
 # In server:
+
+# Run ext4_reserve.sh for non-root partitions
+
 sudo su - borg
 
 # Either create new repos:
