@@ -64,8 +64,15 @@ git clone git@github.com:zzdroide/tamborgcont.git
 cd tamborgcont
 poetry sync --without=dev
 
+# If you have more than 1 HDD, place the passphrase of [the repo in one HDD], in the other HDD.
+# This way, if the HDD fails and goes to RMA, the encrypted data goes without its passphrase.
+# Alternative: store the passphrase in a permanently attached USB stick.
 take ~/env
-cp ~/tamborgcont/env.example TAM
+
+cp ~/tamborgcont/env.example /mnt/somewhere/TAM
+ln -s /mnt/somewhere/TAM
+# (or: `cp ~/tamborgcont/env.example ./TAM`, and no symlink)
+
 nano TAM
 
 popd
