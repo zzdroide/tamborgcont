@@ -82,6 +82,8 @@ nano config.yml
 
 md state/TAM
 touch state/TAM/enabled
+
+# Forward port 1701 in router if backing up over internet. Do not forward port 8087.
 ```
 
 To edit users later:
