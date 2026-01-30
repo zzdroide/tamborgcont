@@ -57,7 +57,7 @@ class TestReleaseLock:
     @pytest.mark.usefixtures('locked_by_user1')
     def test_allow_first_temp_rename(self, monkeypatch, paths: Paths):
         self.write_prev_arcs(paths, (
-            ('id1', 'user1(temp)'),
+            ('id1', 'user1(temp)-2026-01-01'),
         ))
 
         monkeypatch.setattr(Borg, 'dump_arcs', lambda _self: arcs2str((
@@ -69,7 +69,7 @@ class TestReleaseLock:
     def test_allow_self_temp_delete(self, monkeypatch, paths: Paths):
         self.write_prev_arcs(paths, (
             ('id1', 'user1-asdf'),
-            ('id2', 'user1(temp)'),
+            ('id2', 'user1(temp)-2026-01-01'),
         ))
 
         monkeypatch.setattr(Borg, 'dump_arcs', lambda _self: arcs2str((
@@ -90,7 +90,7 @@ class TestReleaseLock:
     @pytest.mark.usefixtures('locked_by_user1')
     def test_check_modified_arcs(self, monkeypatch, paths: Paths):
         self.write_prev_arcs(paths, (
-            ('id0', 'user0(temp)'),
+            ('id0', 'user0(temp)-2026-01-01'),
             ('id1', 'user1-asdf'),
             ('id2', 'user2-asdf'),
             ('id3', 'user1-asdf'),
@@ -100,14 +100,14 @@ class TestReleaseLock:
         self.assert_prev_were_modified()
 
         monkeypatch.setattr(Borg, 'dump_arcs', lambda _self: arcs2str((
-            ('id0', 'user0(temp)'),
+            ('id0', 'user0(temp)-2026-01-01'),
             ('id1', 'user1-asdf'),
             ('id3', 'user1-asdf'),
         )))
         self.assert_prev_were_modified()
 
         monkeypatch.setattr(Borg, 'dump_arcs', lambda _self: arcs2str((
-            ('id0', 'user0(temp)'),
+            ('id0', 'user0(temp)-2026-01-01'),
             ('id1', 'user1-asdf'),
             ('id0', 'user2-asdf'),
             ('id3', 'user1-asdf'),
@@ -115,7 +115,7 @@ class TestReleaseLock:
         self.assert_prev_were_modified()
 
         monkeypatch.setattr(Borg, 'dump_arcs', lambda _self: arcs2str((
-            ('id0', 'user0(temp)'),
+            ('id0', 'user0(temp)-2026-01-01'),
             ('id1', 'user1-asdf'),
             ('id2', 'user2-asdg'),
             ('id3', 'user1-asdf'),
@@ -123,7 +123,7 @@ class TestReleaseLock:
         self.assert_prev_were_modified()
 
         monkeypatch.setattr(Borg, 'dump_arcs', lambda _self: arcs2str((
-            ('id0', 'user0(temp)'),
+            ('id0', 'user0(temp)-2026-01-01'),
             ('id1', 'user1-asdf'),
             ('id3', 'user1-asdf'),
             ('id4', 'user1-asdf'),
@@ -131,7 +131,7 @@ class TestReleaseLock:
         self.assert_prev_were_modified()
 
         monkeypatch.setattr(Borg, 'dump_arcs', lambda _self: arcs2str((
-            ('id0', 'user0(temp)'),
+            ('id0', 'user0(temp)-2026-01-01'),
             ('id1', 'user1-asdf'),
             ('id0', 'user2-asdf'),
             ('id3', 'user1-asdf'),
@@ -140,7 +140,7 @@ class TestReleaseLock:
         self.assert_prev_were_modified()
 
         monkeypatch.setattr(Borg, 'dump_arcs', lambda _self: arcs2str((
-            ('id0', 'user0(temp)'),
+            ('id0', 'user0(temp)-2026-01-01'),
             ('id1', 'user1-asdf'),
             ('id2', 'user2-asdg'),
             ('id3', 'user1-asdf'),
@@ -168,13 +168,13 @@ class TestReleaseLock:
 
         monkeypatch.setattr(Borg, 'dump_arcs', lambda _self: arcs2str((
             ('id1', 'user1-asdf'),
-            ('id2', 'user1(temp)'),
+            ('id2', 'user1(temp)-2026-01-01'),
         )))
         self.check_repo()
 
         monkeypatch.setattr(Borg, 'dump_arcs', lambda _self: arcs2str((
             ('id1', 'user1-asdf'),
-            ('id2', 'user2(temp)'),
+            ('id2', 'user2(temp)-2026-01-01'),
         )))
         self.assert_bad_new_archive()
 

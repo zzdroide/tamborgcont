@@ -33,6 +33,12 @@ class Borg:
             _env=self.env,
         )
 
+    def delete_temp_archives(self):
+        sh.borg.delete(
+            glob_archives='*(temp)-*',
+            _env=self.env,
+        )
+
     def check(self, on_output_line):
         sh.borg(
             '--verbose',

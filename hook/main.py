@@ -12,7 +12,7 @@ from shared.constants import RC, Paths
 from shared.pubsub import PubSub
 from shared.utils import get_logger, mkdir_lock
 
-from .utils import BadRepoError, get_waiting_for, without_temp
+from .utils import BadRepoError, get_waiting_for, without_user_temp
 
 logger = get_logger(
     name='borg_ssh_hook',
@@ -40,14 +40,14 @@ class Hook:
                 msg = f'User from pk is {user} but lock was taken by {lock_user}'
                 raise AssertionError(msg)
 
-            prev_arcs = without_temp(self.paths.lock_prev_arcs.read_text(), user)
+            prev_arcs = without_user_temp(self.paths.lock_prev_arcs.read_text(), user)
 
         else:
             logger.info(f'Checking repo {self.repo} for release_on_restart...')
 
             try:
                 user = self.paths.lock_user.read_text()
-                prev_arcs = without_temp(self.paths.lock_prev_arcs.read_text(), user)
+                prev_arcs = without_user_temp(self.paths.lock_prev_arcs.read_text(), user)
             except FileNotFoundError as e:
                 # Lock was incompletely written, so no "borg serve" should have taken place.
                 # Anyway, can't check without any of those files.
@@ -56,14 +56,14 @@ class Hook:
 
             # Note: `borg break-lock` is not used, because it's possible for borg_daily to be running.
 
-        cur_arcs = without_temp(self.borg.dump_arcs(), user)
+        cur_arcs = without_user_temp(self.borg.dump_arcs(), user)
 
-        # Check that previous archives are intact, except for f'{user}(temp)'
+        # Check that previous archives are intact, except for f'{user}(temp)-*'
         if not cur_arcs.startswith(prev_arcs):
             msg = 'Previous archives were modified!'
             raise BadRepoError(msg)
 
-        # Check that new archives begin with user prefix (excluding f'{user}(temp)')
+        # Check that new archives begin with user prefix (excluding f'{user}(temp)-*')
         new_arcs = cur_arcs.replace(prev_arcs, '', 1)
         new_count = 0
         while new_arcs:
