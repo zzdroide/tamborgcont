@@ -34,13 +34,17 @@ class PubSub(Thread):
             pass
 
     def run(self):
-        with self.paths.pubsub.open('r') as pipe:
-            while True:
-                rlist, _, _ = select.select([pipe], [], [])
-                if not rlist:
-                    return False
-                line = pipe.readline().strip()
-                self.sub_queue.put(line)
+        while True:
+            with self.paths.pubsub.open('r') as pipe:
+                while True:
+                    rlist, _, _ = select.select([pipe], [], [])
+                    if not rlist:
+                        break
+                    line = pipe.readline().strip()
+                    if not line:
+                        # Pipe closed (EOF)
+                        break
+                    self.sub_queue.put(line)
 
     def wait_for(
         self,
