@@ -148,6 +148,9 @@ class ProcessRepo(Thread):
             msg = f'Lock taken by {self.paths.lock_user.read_text()}'
             raise RuntimeError(msg) from None
 
+        # Delete temp archives now, to skip checking them:
+        self.borg.delete_temp_archives()
+
         def on_check_output_line(line: str):
             self.logger.debug(f'borg check: {line}')
         try:
