@@ -30,3 +30,14 @@
     owner: "{{ item }}"
     group: "{{ item }}"
     mode: "0644"
+
+- name: Export XDG_RUNTIME_DIR
+  # Otherwise:
+  #   borg@borg2:~ % systemctl --user status borg-daily.timer
+  #   Failed to connect to user scope bus via local transport: $DBUS_SESSION_BUS_ADDRESS and $XDG_RUNTIME_DIR not defined
+  #   (consider using --machine=<user>@.host --user to connect to bus of other user)
+  ansible.builtin.lineinfile:
+    path: /home/{{ item }}/.zprofile
+    regexp: ^export XDG_RUNTIME_DIR=
+    line: export XDG_RUNTIME_DIR="/run/user/$UID"
+    state: present

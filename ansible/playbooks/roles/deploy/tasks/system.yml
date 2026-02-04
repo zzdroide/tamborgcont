@@ -119,32 +119,19 @@
   failed_when: false
   changed_when: false
 
-- name: Copy autosuspend and borg-daily files
+- name: Copy autosuspend.conf
   ansible.builtin.copy:
-    src: "{{ item.src }}"
-    dest: "{{ item.dest }}"
-    force: "{{ item.force | default(false) }}"  # Don't overwrite existing
+    src: files/autosuspend.conf
+    dest: /etc/
+    force: "{{ autosuspend_conf_default.rc == 0 }}"
     owner: root
     group: root
     mode: "0644"
-  loop:
-    - src: files/autosuspend.conf
-      dest: /etc/
-      force: "{{ autosuspend_conf_default.rc == 0 }}"
-    - src: files/borg-daily.service
-      dest: /etc/systemd/system/
-    - src: files/borg-daily.timer
-      dest: /etc/systemd/system/
   register: autosuspend_copy
 
 - name: Restart autosuspend on new config
   ansible.builtin.systemd:
     name: autosuspend.service
     state: restarted
-  when: autosuspend_copy.results[0].changed
-
-- name: Enable and start borg-daily.timer
-  ansible.builtin.systemd:
-    name: borg-daily.timer
-    state: started
-    enabled: true
+    daemon_reload: true
+  when: autosuspend_copy.changed

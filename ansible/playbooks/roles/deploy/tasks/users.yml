@@ -55,3 +55,44 @@
     owner: borg
     group: borg
     mode: "0644"
+
+- name: Create systemd user directory for borg
+  ansible.builtin.file:
+    path: /home/borg/.config/systemd/user
+    state: directory
+    owner: borg
+    group: borg
+    mode: "0755"
+
+- name: Copy borg-daily user service files
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: /home/borg/.config/systemd/user/
+    owner: borg
+    group: borg
+    mode: "0644"
+  loop:
+    - files/borg-daily.service
+    - files/borg-daily.timer
+
+- name: Enable lingering for borg user
+  ansible.builtin.command:
+    cmd: loginctl enable-linger borg
+    creates: /var/lib/systemd/linger/borg
+
+- name: Get borg user UID
+  ansible.builtin.command: id -u borg
+  register: borg_user_uid
+  changed_when: false
+
+- name: Enable and start borg-daily.timer (user service)
+  ansible.builtin.systemd:
+    name: borg-daily.timer
+    scope: user
+    state: started
+    enabled: true
+    daemon_reload: true
+  become: true
+  become_user: borg
+  environment:
+    XDG_RUNTIME_DIR: "/run/user/{{ borg_user_uid.stdout }}"

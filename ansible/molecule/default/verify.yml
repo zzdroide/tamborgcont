@@ -39,10 +39,24 @@
       register: borg_version
       failed_when: not borg_version.stdout.startswith('borg 1.')
 
-    - name: Verify autosuspend and borg-daily are enabled
+    - name: Verify autosuspend is enabled
       ansible.builtin.shell: |
         set -e
         systemctl is-enabled autosuspend.service
         systemctl is-enabled autosuspend-detect-suspend.service
-        systemctl is-enabled borg-daily.timer
+      changed_when: false
+
+    - name: Get borg user UID
+      ansible.builtin.command: id -u borg
+      register: borg_user_uid
+      changed_when: false
+
+    - name: Verify borg-daily is enabled (user service)
+      ansible.builtin.command: systemctl --user is-enabled borg-daily.timer
+      tags:
+        - skip_ansible_lint
+      become: true
+      become_user: borg
+      environment:
+        XDG_RUNTIME_DIR: "/run/user/{{ borg_user_uid.stdout }}"
       changed_when: false

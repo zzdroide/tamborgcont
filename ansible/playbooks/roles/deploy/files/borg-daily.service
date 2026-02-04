@@ -3,9 +3,7 @@ Description=Borg daily routine
 
 [Service]
 Type=exec
-User=borg
-Group=borg
-ExecSearchPath=/home/borg/.local/bin/
-WorkingDirectory=/home/borg/tamborgcont/
+ExecSearchPath=%h/.local/bin/
+WorkingDirectory=%h/tamborgcont/
 ExecStart=poetry -q run python -m daily.main
-Environment="PATH=/home/borg/.local/bin/:/usr/local/sbin:/usr/local/bin:/sbin:/bin"
+Environment="PATH=%h/.local/bin/:/usr/local/sbin:/usr/local/bin:/sbin:/bin"
