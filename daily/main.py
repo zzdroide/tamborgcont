@@ -12,17 +12,37 @@ from daily.http_server import HttpServer
 from daily.smarthealthc import smarthealthc
 from daily.utils import hc_ping
 from shared.borg import Borg
-from shared.config import get_config, get_config_repos, get_config_weekly_healthcheck
+from shared.config import (
+    get_config,
+    get_config_force_weekly_until,
+    get_config_repos,
+    get_config_weekly_healthcheck,
+)
 from shared.constants import Paths
 from shared.pubsub import PubSub
 from shared.utils import get_logger, mkdir_lock
 
-TUESDAY = 1
+
+def get_is_weekly():
+    TUESDAY = 1
+    now = datetime.now().astimezone()
+
+    if now.weekday() == TUESDAY:
+        return True
+
+    force_until = get_config_force_weekly_until()
+    if force_until:
+        if isinstance(force_until, str):
+            force_until = datetime.fromisoformat(force_until).date()
+        if now.date() <= force_until:
+            return True
+
+    return False
 
 
 def main():
     hc_url = get_config_weekly_healthcheck()
-    is_weekly = datetime.now().astimezone().weekday() == TUESDAY
+    is_weekly = get_is_weekly()
 
     def weekly_ping(action: str, data: str | None = None):
         if is_weekly:

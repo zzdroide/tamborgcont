@@ -20,3 +20,5 @@ weekly_healthcheck: https://hc-ping.com/your-uuid-here
 
 smarthealthc:
   - [https://hc-ping.com/your-uuid-here, /dev/disk/by-id/ata-ST...]
+
+force_weekly_until: 2026-01-01
