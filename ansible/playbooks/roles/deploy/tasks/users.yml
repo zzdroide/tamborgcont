@@ -96,3 +96,22 @@
   become_user: borg
   environment:
     XDG_RUNTIME_DIR: "/run/user/{{ borg_user_uid.stdout }}"
+
+- name: Create ~/.local/bin/
+  ansible.builtin.file:
+    path: /home/{{ ansible_user_id }}/.local/bin
+    state: directory
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_id }}"
+    mode: '0755'
+
+- name: Add shortcut for shell access to borg user
+  # Like alias sb='sudo su - borg'
+  ansible.builtin.copy:
+    dest: /home/{{ ansible_user_id }}/.local/bin/sb
+    content: |
+      #!/bin/sh
+      exec sudo su - borg
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_id }}"
+    mode: '0755'
