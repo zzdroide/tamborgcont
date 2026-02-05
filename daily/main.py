@@ -219,7 +219,7 @@ def ssh_tamborgmatic_auto(ssh_cfg: SshConfig):
         sh.ssh(
             *ssh_opts,
             f'{ssh_cfg.user}@{ssh_cfg.host}',
-            'systemctl --user start tamborgmatic-auto.service',
+            'sudo systemctl start tamborgmatic-auto.service',
             _err_to_out=True,
         )
         return True, ''
