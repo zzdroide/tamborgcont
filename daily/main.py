@@ -90,7 +90,7 @@ class ProcessRepo(Thread):
             if user:
                 http_server.repo_waiting[repo] = user
             else:
-                http_server.repo_waiting.pop(repo)
+                http_server.repo_waiting.pop(repo, None)
         self.set_waiting_for = set_waiting_for
 
     def run(self):
