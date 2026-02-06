@@ -95,7 +95,10 @@ nano config.yml
 ### Watching logs
 ```sh
 # As admin user:
-sudo journalctl -ft sshd -t borg_ssh_hook
+sudo journalctl -ef \
+  _SYSTEMD_UNIT=hpnssh.service \
+  + SYSLOG_IDENTIFIER=borg_ssh_hook \
+  + _SYSTEMD_USER_UNIT=borg-daily.service
 
 # As borg user:
 journalctl --user -efu borg-daily.service
