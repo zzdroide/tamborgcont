@@ -33,7 +33,7 @@ Note: autosuspend is enabled in Vagrant too. If `molecule login` hangs, reset th
 
 - Install Debian trixie
   - with ext4 `largefile`
-  - with a strong password because SSH PasswordAuthentication defaults to yes
+  - with a non-trivial password because SSH PasswordAuthentication defaults to yes
   - with "SSH server" and "standard system utilities" software
 - Set static IP (preferably at the router, against MAC)
 - `ssh-copy-id`
