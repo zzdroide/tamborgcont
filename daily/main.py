@@ -79,8 +79,7 @@ class ProcessRepo(Thread):
         self.paths = Paths(repo)
         self.borg = Borg(repo)
         self.logger = get_logger(
-            name=repo,
-            syslog_identifier='borg_daily',
+            repo,
             stderr_level=logging.CRITICAL,  # Because it runs as a systemd service, stderr logs duplicate.
         )
         self.pubsub = PubSub(self.paths)
