@@ -82,7 +82,7 @@ class ProcessRepo(Thread):
             repo,
             stderr_level=logging.CRITICAL,  # Because it runs as a systemd service, stderr logs duplicate.
         )
-        self.pubsub = PubSub(self.paths)
+        self.pubsub = PubSub(self.paths, start=True)
         self.exception: Exception | None = None
 
         def set_waiting_for(user: str | None):

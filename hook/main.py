@@ -29,7 +29,7 @@ class Hook:
         self.paths = Paths(repo)
         self.paths.repo_state.mkdir(parents=True, exist_ok=True)
         self.borg = Borg(repo)
-        self.pubsub = PubSub(self.paths)
+        self.pubsub = PubSub(self.paths, start=False)
 
     def check_repo(self, user: str | None, *, release_on_restart=False) -> int:
         if not release_on_restart:

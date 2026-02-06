@@ -16,13 +16,14 @@ if TYPE_CHECKING:
 
 
 class PubSub(Thread):
-    def __init__(self, paths: Paths):
+    def __init__(self, paths: Paths, *, start: bool):
         super().__init__(daemon=True, name=str(paths.pubsub))
         self.paths = paths
         self.sub_queue = Queue[str]()
         with contextlib.suppress(FileExistsError):
             os.mkfifo(self.paths.pubsub)
-        self.start()
+        if start:
+            self.start()
 
     def publish(self, message: str):
         try:
