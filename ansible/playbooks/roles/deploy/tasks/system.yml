@@ -135,3 +135,30 @@
     state: restarted
     daemon_reload: true
   when: autosuspend_copy.changed
+
+- name: Load bfq module at boot
+  ansible.builtin.copy:
+    dest: /etc/modules-load.d/bfq.conf
+    content: "bfq\n"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Load bfq module immediately
+  community.general.modprobe:
+    name: bfq
+    state: present
+
+- name: Add udev rule for BFQ scheduler
+  ansible.builtin.copy:
+    src: files/60-ioscheduler.rules
+    dest: /etc/udev/rules.d/
+    owner: root
+    group: root
+    mode: "0644"
+  register: udev_rules
+
+- name: Reload udev rules
+  ansible.builtin.shell: udevadm control --reload-rules && udevadm trigger
+  when: udev_rules.changed
+  changed_when: true

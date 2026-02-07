@@ -2,6 +2,8 @@ import os
 
 import sh
 
+nice = sh.nice.bake('-n19', 'ionice', '-c2', '-n7')
+
 
 class Borg:
     def __init__(self, repo: str):
@@ -40,7 +42,7 @@ class Borg:
         )
 
     def check(self, on_output_line):
-        sh.borg(
+        nice.borg(
             '--verbose',
             'check',
             '--verify-data',

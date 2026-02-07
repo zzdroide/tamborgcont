@@ -1,0 +1,2 @@
+# Use BFQ for rotational devices (HDDs)
+ACTION=="add|change", KERNEL=="sd*[!0-9]", ATTR{queue/rotational}=="1", ATTR{queue/scheduler}="bfq"
