@@ -1,0 +1,11 @@
+[Unit]
+Description=Disable ACPI GPE09 storm
+After=suspend.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'echo disable >/sys/firmware/acpi/interrupts/gpe09'
+
+[Install]
+WantedBy=multi-user.target
+WantedBy=suspend.target
