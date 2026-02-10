@@ -108,6 +108,9 @@ class ProcessRepo(Thread):
         if not self.paths.repo_enabled.exists():
             self.logger.debug('Repo is disabled')
             return
+        if self.paths.lock.is_dir():
+            self.logger.debug(f'Lock is taken by {self.paths.lock_user.read_text()}')
+            return
 
         auto_users = (u for u in get_config()['users'] if u['repo'] == self.repo and u.get('ssh'))
         try:
@@ -167,27 +170,34 @@ class ProcessRepo(Thread):
         self.logger.debug('run_weekly: started')
         try:
             mkdir_lock(self.paths)
+            self.paths.lock_user.write_text('run_weekly')
         except FileExistsError:
             msg = f'Lock taken by {self.paths.lock_user.read_text()}'
             raise RuntimeError(msg) from None
 
-        # Delete temp archives now, to skip checking them:
-        self.borg.delete_temp_archives()
-
-        def on_check_output_line(line: str):
-            self.logger.debug(f'borg check: {line}')
+        autorelease_lock = True
         try:
-            self.borg.check(on_check_output_line)
-        except sh.ErrorReturnCode as e:
-            self.logger.info('Append-only rollback instructions: https://borgbackup.readthedocs.io/en/stable/usage/notes.html#append-only-mode-forbid-compaction')
-            msg = f'borg check failed with rc={e.exit_code}'
-            raise RuntimeError(msg) from None
+            # Delete temp archives now, to skip checking them:
+            self.borg.delete_temp_archives()
+
+            def on_check_output_line(line: str):
+                self.logger.debug(f'borg check: {line}')
+            try:
+                autorelease_lock = False
+                self.borg.check(on_check_output_line)
+                autorelease_lock = True
+            except sh.ErrorReturnCode as e:
+                self.logger.info('Append-only rollback instructions: https://borgbackup.readthedocs.io/en/stable/usage/notes.html#append-only-mode-forbid-compaction')
+                msg = f'borg check failed with rc={e.exit_code}'
+                raise RuntimeError(msg) from None
 
         # TODO: rsync
         # TODO: prune
         # TODO: compact
 
-        shutil.rmtree(self.paths.lock)
+        finally:
+            if autorelease_lock:
+                shutil.rmtree(self.paths.lock)
         self.logger.debug('run_weekly: success')
 
 
