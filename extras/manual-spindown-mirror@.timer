@@ -1,0 +1,12 @@
+[Unit]
+Requires=manual-spindown-mirror@%i.service
+
+[Timer]
+Unit=manual-spindown-mirror@%i.service
+# Spindown immediately at boot:
+OnBootSec=0
+# And then every 5m:
+OnUnitActiveSec=5m
+
+[Install]
+WantedBy=timers.target

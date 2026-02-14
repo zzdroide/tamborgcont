@@ -1,1 +1,2 @@
-`disable-gpe09.service` is needed for the server computer I'm using. I decided to back it up here.
+These are extra files needed for the specific hardware I'm using.
+I decided to add them here, for backup and for reference.

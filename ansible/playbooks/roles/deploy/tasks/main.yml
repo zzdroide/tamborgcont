@@ -44,8 +44,9 @@
       - acpid
       - beep
 
-      # smarthealthc
-      - smartmontools
+      # borg-daily
+      - rsync
+      - smartmontools  # smartctl
 
       # For systemd-python (https://github.com/systemd/python-systemd/#to-build-from-source)
       - libsystemd-dev

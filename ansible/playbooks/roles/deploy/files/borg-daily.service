@@ -7,3 +7,4 @@ ExecSearchPath=%h/.local/bin/
 WorkingDirectory=%h/tamborgcont/
 ExecStart=poetry -q run python -m daily.main
 Environment="PATH=%h/.local/bin/:/usr/local/sbin:/usr/local/bin:/sbin:/bin"
+Environment="IS_SYSTEMD=1"

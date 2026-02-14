@@ -1,26 +1,27 @@
 from __future__ import annotations
 
-import logging
 import shutil
+from contextlib import contextmanager, suppress
 from datetime import datetime
-from threading import Thread
+from typing import TYPE_CHECKING
 
 import sh
 import wakeonlan
 
 from daily.http_server import HttpServer
 from daily.smarthealthc import smarthealthc
-from daily.utils import hc_ping
-from shared.borg import Borg
+from daily.utils import JoinRaiseThread, hc_ping
 from shared.config import (
     get_config,
-    get_config_force_weekly_until,
     get_config_repos,
-    get_config_weekly_healthcheck,
 )
 from shared.constants import Paths
 from shared.pubsub import PubSub
-from shared.utils import get_logger, mkdir_lock
+from shared.shell import Borg, Mirror
+from shared.utils import LoggerPurpose, get_logger, mkdir_lock
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def get_is_weekly():
@@ -30,7 +31,7 @@ def get_is_weekly():
     if now.weekday() == TUESDAY:
         return True
 
-    force_until = get_config_force_weekly_until()
+    force_until = get_config().get('force_weekly_until')
     if force_until:
         if isinstance(force_until, str):
             force_until = datetime.fromisoformat(force_until).date()
@@ -41,7 +42,7 @@ def get_is_weekly():
 
 
 def main():
-    hc_url = get_config_weekly_healthcheck()
+    hc_url = get_config()['weekly_healthcheck']
     is_weekly = get_is_weekly()
 
     def weekly_ping(action: str, data: str | None = None):
@@ -71,19 +72,19 @@ def main():
         weekly_ping('0')  # Success
 
 
-class ProcessRepo(Thread):
+class ProcessRepo(JoinRaiseThread):
     def __init__(self, repo: str, http_server: HttpServer, *, is_weekly: bool):
-        super().__init__(name=repo)
+        logger = get_logger(repo, LoggerPurpose.DAILY)
+        super().__init__(repo, logger)
         self.repo = repo
+        self.logger = logger
         self.is_weekly = is_weekly
         self.paths = Paths(repo)
-        self.borg = Borg(repo)
-        self.logger = get_logger(
-            repo,
-            stderr_level=logging.CRITICAL,  # Because it runs as a systemd service, stderr logs duplicate.
-        )
+        self.borg = Borg(self.paths)
         self.pubsub = PubSub(self.paths, start=True)
-        self.exception: Exception | None = None
+
+        mirror_host = get_config()['repos'][repo].get('mirror_host')
+        self.mirror = Mirror(mirror_host) if mirror_host else None
 
         def set_waiting_for(user: str | None):
             if user:
@@ -91,18 +92,6 @@ class ProcessRepo(Thread):
             else:
                 http_server.repo_waiting.pop(repo, None)
         self.set_waiting_for = set_waiting_for
-
-    def run(self):
-        try:
-            self._run()
-        except Exception as e:
-            self.logger.exception('')
-            self.exception = e
-
-    def join_raise(self, timeout=None):
-        self.join(timeout)
-        if self.exception:
-            raise self.exception
 
     def _run(self):
         if not self.paths.repo_enabled.exists():
@@ -116,9 +105,14 @@ class ProcessRepo(Thread):
         try:
             for user in auto_users:
                 self.run_user(user)
+
             if self.is_weekly:
                 self.set_waiting_for('run_weekly')
                 self.run_weekly()
+            else:
+                self.set_waiting_for(None)
+                if self.mirror:
+                    self.rsync_current(link_dest=self.mirror.CURRENT)
         finally:
             self.set_waiting_for(None)
 
@@ -166,6 +160,101 @@ class ProcessRepo(Thread):
             # This will be smooth on happy path. On failure, it will uselessly wait for 30m.
         self.logger.debug(f'{user['user']}: success')
 
+    @contextmanager
+    def data_snapshot(self, to_path: Path):
+        '''
+        Using a hardlinked copy is safe:
+        - "[segments] are strictly append-only and modified only once."  https://borgbackup.readthedocs.io/en/stable/internals/data-structures.html#segments
+        - https://github.com/borgbackup/borg/commit/4a2ab496e09b5feb5dcdb326f0c56aba1563e7ed#diff-57498cd583e81bed522aee757fb13023a9a6f99b343af93c6082f4da1bec69a0R228-R229
+        '''
+        with suppress(FileNotFoundError):
+            shutil.rmtree(to_path)
+        self.borg.with_lock.cp('-al', self.paths.repo_data, to_path)
+        try:
+            yield
+        finally:
+            shutil.rmtree(to_path)
+
+    def rsync_current(self, *, link_dest):
+        self.logger.debug('Rsyncing current to mirror...')
+        with self.mirror.mount(), self.data_snapshot(self.paths.repo_snap_current):
+            self.mirror.rsync(
+                '-rt',
+                f'--link-dest={link_dest}',
+                f'{self.paths.repo_snap_current}/',
+                f'{self.mirror.destination}:{self.mirror.CURRENT_NEW}'
+            )
+            self.mirror.promote(self.mirror.CURRENT_NEW, self.mirror.CURRENT)
+
+    def delete_mirror_damaged(self):
+        '''
+        The mirror keeps two copies of the repo data: onec current and one checked.
+        When a new copy is rsynced, it's made into current.new/checked.new first,
+        and then promoted to current/checked.
+        They use hardlinks across segments to save space, but before rsyncing `checked`,
+        confirm that its sources (that will be hardlinked) are intact.
+        Detects if a file got corrupted, but not if it got deleted.
+        '''
+        checksum_out = self.mirror.nice_stdout_rsync(
+            '-rt',
+            '--checksum',
+            '--dry-run',
+            '--itemize-changes',
+            f'{self.paths.repo_snap_checked}/',
+            f'{self.mirror.destination}:{self.mirror.CURRENT}',
+            _iter='out',
+        )
+        damaged_files = [
+            line.rstrip('\n').split(' ')[1]
+            for line in checksum_out
+            if line.startswith('<f') and not line.startswith('<f+++')
+        ]
+        if damaged_files:
+            self.logger.warning(f'Deleting damaged files in mirror: {damaged_files}')
+            self.mirror.rsync(
+                '--files-from=-',
+                '--delete-missing-args',
+                '/var/empty/',
+                f'{self.mirror.destination}:{self.mirror.CURRENT}',
+                _in='\n'.join(damaged_files),
+                _ok_code=[0, 24],  # 24: "some files vanished" is expected when source is empty
+            )
+        else:
+            self.logger.debug('No damaged files in mirror')
+        return damaged_files
+
+    def prune_compact(self):
+        self.logger.debug('Pruning...')
+        prune_kwargs = get_config()['repos'][self.repo]['prune']
+        within_kwargs = {
+            **prune_kwargs,
+            'keep_within': f"{prune_kwargs['keep_daily']}d",
+        }
+        within_kwargs.pop('keep_daily', None)
+
+        for u in filter(lambda u: u['repo'] == self.repo, get_config()['users']):
+            self.borg.prune(u['user'], **within_kwargs)
+            self.borg.prune(u['user'], **prune_kwargs)
+            # Two similar prunes to handle different cases. Assume today is 2026-01-01:
+            #
+            # Pass 1 (keep_within={keep_daily}d + keep_weekly + ...):
+            #   Ensures not too much far granularity is kept. For example, a computer which backups once a month,
+            #   but that backed up every day from 2025-08-01 to 2025-08-10,
+            #   keep_daily=15 would keep the following 15 archives:
+            #   2025-12-01, 2025-11-01, 2025-10-01, 2025-09-01, 2025-08-10, 2025-08-09, ... 2025-08-01, ...
+            #   Instead, keep_within=15d and keep_weekly leave only backups for 3 and 10 of August (one per week).
+            #
+            # Pass 2 (keep_daily + keep_weekly + ...):
+            #   Prunes same-day duplicates. If a computer backed up twice on 2025-12-30 (within keep_within=15d),
+            #   only the second archive of those is kept.
+            #
+            # Swapping the order of the passes would protect more far archives.
+
+        self.logger.debug('Compacting...')
+        compaction_threshold = get_config()['repos'][self.repo].get('compaction_threshold', 10)
+        self.borg.compact(compaction_threshold)
+        self.logger.debug('Compaction completed')
+
     def run_weekly(self):
         self.logger.debug('run_weekly: started')
         try:
@@ -177,9 +266,11 @@ class ProcessRepo(Thread):
 
         autorelease_lock = True
         try:
-            # Delete temp archives now, to skip checking them:
+            # Delete temp archives now, to skip checking them.
+            self.logger.debug('Deleting temp archives...')
             self.borg.delete_temp_archives()
 
+            # Check repo
             def on_check_output_line(line: str):
                 self.logger.debug(f'borg check: {line}')
             try:
@@ -191,13 +282,54 @@ class ProcessRepo(Thread):
                 msg = f'borg check failed with rc={e.exit_code}'
                 raise RuntimeError(msg) from None
 
-        # TODO: rsync
-        # TODO: prune
-        # TODO: compact
+            damaged_files = []
+            if self.mirror:
+                with self.mirror.mount(), self.data_snapshot(self.paths.repo_snap_checked):
+                    damaged_files = self.delete_mirror_damaged()
+                    # The method above is HDD-bound (uses ionice),
+                    # so trying to do other operations in parallel would be slower, because of HDD thrasing.
+
+                    # `compact` is HDD-bound too (uses ionice), but the next rsync is internet-bound,
+                    # so both can run in parallel. TODO: does this thrash?
+                    outer_self = self
+
+                    class PruneThread(JoinRaiseThread):
+                        def _run(self):
+                            outer_self.prune_compact()
+
+                    prune_thread = PruneThread(self.repo, self.logger)
+                    prune_thread.start()
+
+                    self.logger.debug('Rsyncing checked to mirror...')
+                    self.mirror.rsync(
+                        '-rt',
+                        f'--link-dest={self.mirror.CURRENT}',
+                        f'{self.paths.repo_snap_checked}/',
+                        f'{self.mirror.destination}:{self.mirror.CHECKED_NEW}',
+                    )
+                    self.mirror.promote(self.mirror.CHECKED_NEW, self.mirror.CHECKED)
+                    self.logger.debug('Rsync checked to mirror completed')
+                    # Note: Usually no "...completed" messages are logged,
+                    # but it's made here because there are two threads running in parallel.
+
+                prune_thread.join_raise()
+                # After prune+compact+rsync_checked, the new "current" copy is ready to be rsynced.
+                self.rsync_current(
+                    link_dest=self.mirror.CHECKED  # The latest copy was to checked instead of current
+                )
+            else:
+                self.prune_compact()
 
         finally:
             if autorelease_lock:
                 shutil.rmtree(self.paths.lock)
+                # Note: this could release the lock while prune_thread is running. But it doesn't matter:
+                # instead of the hook reliably blocking access with "Repo is locked by user run_weekly",
+                # it will less reliably block with "Underlying repo is locked".
+
+        if damaged_files:
+            msg = 'run_weekly completed successfully, but mirror had damaged files'
+            raise RuntimeError(msg)
         self.logger.debug('run_weekly: success')
 
 

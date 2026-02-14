@@ -2,8 +2,8 @@ import pytest
 
 import hook
 from hook.main import main
-from shared.borg import Borg
 from shared.constants import RC, Paths
+from shared.shell import Borg
 
 
 class TestAcquireLock:

@@ -1,16 +1,33 @@
 from __future__ import annotations
 
 import logging
+import os
 import sys
+from enum import Enum
 
 from systemd import journal
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 
-def get_logger(name: str, *, stderr_level: int):
+class LoggerPurpose(Enum):
+    HOOK = 'hook'
+    DAILY = 'daily'
+
+
+def get_logger(name: str, purpose: LoggerPurpose):
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
     logger.propagate = False  # Prevent propagation to root logger to avoid duplicate output
+
+    match purpose:
+        case LoggerPurpose.HOOK:
+            stderr_level = logging.WARNING
+        case LoggerPurpose.DAILY:
+            if os.getenv('IS_SYSTEMD') == '1':
+                # Already logging to systemd journal. Stderr logs are just duplicate spam.
+                stderr_level = logging.CRITICAL
+            else:
+                stderr_level = logging.DEBUG
 
     # Only add handlers if they don't already exist
     if len(logger.handlers) == 0:
