@@ -4,13 +4,13 @@ from pathlib import Path
 import sh
 
 from daily.utils import hc_ping, logger
-from shared.config import get_config_smarthealthc
+from shared.config import get_config
 
 
 def smarthealthc():
     """Like https://github.com/zzdroide/borgmatic/blob/master/hooks.d/helpers/smart_check_disk.sh"""
 
-    for hc_url, disk in get_config_smarthealthc():
+    for hc_url, disk in get_config()['smarthealthc']:
         action, msg = process_disk(disk)
 
         if action == 'log':

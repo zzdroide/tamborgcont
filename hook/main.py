@@ -1,26 +1,22 @@
 from __future__ import annotations
 
-import logging
 import os
 import re
 import shutil
 import sys
 
-from shared.borg import Borg
 from shared.config import get_config_from_pk, get_config_repos
 from shared.constants import RC, Paths
 from shared.pubsub import PubSub
-from shared.utils import get_logger, mkdir_lock
+from shared.shell import Borg
+from shared.utils import LoggerPurpose, get_logger, mkdir_lock
 
 from .utils import BadRepoError, get_waiting_for, without_user_temp
 
-logger = get_logger(
-    'borg_ssh_hook',
-    # stdout/stderr from this script breaks borg with: Got unexpected RPC data format from server: <message>
-    # So if access is going to be granted, log up to INFO only.
-    # On access denied, you can output whatever you want.
-    stderr_level=logging.WARNING,
-)
+# stdout/stderr from this script breaks borg with: Got unexpected RPC data format from server: <message>
+logger = get_logger('borg_ssh_hook', LoggerPurpose.HOOK)  # Logs from logging.WARNING level.
+# So if access is going to be granted, log up to INFO only.
+# On access denied, you can output whatever you want.
 
 
 class Hook:
@@ -28,7 +24,7 @@ class Hook:
         self.repo = repo
         self.paths = Paths(repo)
         self.paths.repo_state.mkdir(parents=True, exist_ok=True)
-        self.borg = Borg(repo)
+        self.borg = Borg(self.paths)
         self.pubsub = PubSub(self.paths, start=False)
 
     def check_repo(self, user: str | None, *, release_on_restart=False) -> int:

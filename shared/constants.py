@@ -20,3 +20,9 @@ class Paths:
         self.lock_user = self.lock / 'user.txt'
 
         self.pubsub = self.repo_state / 'pubsub.fifo'
+
+        self.env = Path('/home/borg/env') / repo
+        self.repo = Path('/home/borg') / repo
+        self.repo_data = self.repo / 'data'
+        self.repo_snap_current = self.repo / 'data.snap.current'
+        self.repo_snap_checked = self.repo / 'data.snap.checked'

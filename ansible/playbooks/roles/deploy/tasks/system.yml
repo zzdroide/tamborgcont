@@ -162,3 +162,11 @@
   ansible.builtin.shell: udevadm control --reload-rules && udevadm trigger
   when: udev_rules.changed
   changed_when: true
+
+- name: Ensure /var/empty/ exists
+  ansible.builtin.file:
+    path: /var/empty/
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"

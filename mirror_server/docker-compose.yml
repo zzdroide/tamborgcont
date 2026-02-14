@@ -1,0 +1,18 @@
+services:
+  mirror:
+    container_name: tamborg_mirror
+    build:
+      context: .
+    privileged: true
+    volumes:
+      - /dev/:/dev/:rw
+      - /mnt/tamborg_mirror/:/mnt/tamborg_mirror/:rw
+      - ./cmd.sh:/cmd.sh:ro
+      - ./sshd_config:/etc/hpnssh/sshd_config:ro
+      - ./ssh_host_ed25519_key:/etc/hpnssh/ssh_host_ed25519_key:ro
+      - ./.ssh/:/home/mirror/.ssh/:ro
+    environment:
+      PARTUUID: ${PARTUUID}
+    ports:
+      - 0.0.0.0:1701:1701
+    restart: unless-stopped

@@ -1,0 +1,23 @@
+[Unit]
+Description=Manually spindown a HDD
+# The symptom is that no matter which APM value you set, it never spins down.
+# It happened to me with a WD Purple HDD (WD43PURZ).
+#
+# This workaround spins it down when unmounted. Assumes it has a single partition.
+# %i should be the partition uuid, which can be found in /dev/disk/by-partuuid/
+# It also checks if the partition is mounted in tamborg_mirror container.
+
+Wants=manual-spindown-mirror@%i.timer
+
+[Service]
+Type=oneshot
+ExecCondition=sh -c '\
+  findmnt /dev/disk/by-partuuid/%i >/dev/null 2>&1 && exit 1; \
+  PID=$(docker inspect -f "{{.State.Pid}}" tamborg_mirror 2>/dev/null); \
+  [ -n "$PID" ] && [ "$PID" != "0" ] && \
+    grep -q "^$(readlink -f /dev/disk/by-partuuid/%i) " /proc/$PID/mounts && exit 1; \
+  exit 0'
+ExecStart=sh -c "hdparm -y /dev/$(lsblk --noheadings --output PKNAME /dev/disk/by-partuuid/%i)"
+
+[Install]
+WantedBy=multi-user.target

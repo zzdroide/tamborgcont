@@ -10,7 +10,7 @@ import yaml
 from tenacity import wait_fixed
 
 import hook
-from shared import borg, config
+from shared import config, shell
 from shared.constants import Paths
 
 
@@ -56,6 +56,11 @@ class PreventSh:
 
         if isclass(attr) and issubclass(attr, Exception):
             return attr
+        if name == 'bake':
+            return self.bake
+        return self
+
+    def bake(self, *_args, **_kwargs):
         return self
 
     def __call__(self, *_args, **_kwargs):
@@ -65,7 +70,7 @@ class PreventSh:
 
 @pytest.fixture(autouse=True)
 def no_sh_calls(monkeypatch):
-    monkeypatch.setattr(borg, 'sh', PreventSh())
+    monkeypatch.setattr(shell, 'sh', PreventSh())
 
 
 @pytest.fixture(autouse=True)

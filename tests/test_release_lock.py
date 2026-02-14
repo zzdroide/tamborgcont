@@ -3,8 +3,8 @@ import pytest
 from hook.main import Hook, main
 from hook.utils import BadRepoError, arcs2str
 from shared import config
-from shared.borg import Borg
 from shared.constants import RC, Paths
+from shared.shell import Borg
 
 
 class TestReleaseLock:

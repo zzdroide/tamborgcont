@@ -16,9 +16,32 @@ users:
     repo: TAM
     # No automatic backups if no ssh key.
 
+repos:
+  TAM:
+    prune:
+      # Must include keep_daily, and no keep_hourly or lower.
+      keep_daily: 30
+      keep_weekly: 13
+      keep_monthly: 12
+      keep_13weekly: 12
+      keep_yearly: 6
+      # Note: this is an unrealistically generous example,
+      # which isn't workable in practice because it would eventually run out of space.
+
+    # Try to choose a high threshold if the repo is going to be mirrored: https://github.com/borgbackup/borg/issues/635
+    compaction_threshold: 20
+    mirror_host: mirror.example.com
+
+  AMGS:
+    prune:
+      keep_daily: 30
+      keep_weekly: 13
+      keep_monthly: 12
+      keep_13weekly: 12
+      keep_yearly: 6
+
+force_weekly_until: 2026-01-01
 weekly_healthcheck: https://hc-ping.com/your-uuid-here
 
 smarthealthc:
   - [https://hc-ping.com/your-uuid-here, /dev/disk/by-id/ata-ST...]
-
-force_weekly_until: 2026-01-01
