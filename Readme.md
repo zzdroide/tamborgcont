@@ -53,43 +53,42 @@ Some manual interactive setup after it finishes:
 sudo su - borg
 
 # Either create new repos:
-borg init --encryption=repokey $HOME/TAM
-borg key export $HOME/TAM   # Send the key in an email to self
+borg init --encryption=repokey ~/TAM
+borg key export ~/TAM   # Send the key in an email to self
 
-# Or restore them to $HOME.
+# Or restore them to ~.
 
 # The next line requires adding ~/.ssh/id_ed25519.pub in https://github.com/zzdroide/tamborgcont/settings/keys
-git clone git@github.com:zzdroide/tamborgcont.git
+git clone git@github.com:zzdroide/tamborgcont.git ~/tamborgcont
 
-cd tamborgcont
+cd ~/tamborgcont
 poetry sync --without=dev
 
 # If you have more than 1 HDD, place the passphrase of [the repo in one HDD], in the other HDD.
 # This way, if the HDD fails and goes to RMA, the encrypted data goes without its passphrase.
 # Alternative: store the passphrase in a permanently attached USB stick.
-take ~/env
+md ~/env
 
 cp ~/tamborgcont/env.example /mnt/somewhere/TAM
-ln -s /mnt/somewhere/TAM
-# (or: `cp ~/tamborgcont/env.example ./TAM`, and no symlink)
+ln -s /mnt/somewhere/TAM ~/env/
+# (or: `cp ~/tamborgcont/env.example ~/env/TAM`, and no symlink)
 
-nano TAM
+nano ~/env/TAM
 
-popd
-cp config.test.yml config.yml
-nano config.yml
-./update_authorized_keys.sh
+cp ~/tamborgcont/config.{test.yml,.yml}
+nano ~/tamborgcont/config.yml
+~/tamborgcont/update_authorized_keys.sh
 
-md state/TAM
-touch state/TAM/enabled
+md ~/tamborgcont/state/TAM
+touch ~/tamborgcont/state/TAM/enabled
 
 # Forward port 1701 in router if backing up over internet. Do not forward port 8087.
 ```
 
 To edit users later:
 ```sh
-nano config.yml
-./update_authorized_keys.sh
+nano ~/tamborgcont/config.yml
+~/tamborgcont/update_authorized_keys.sh
 ```
 
 ### Watching logs
