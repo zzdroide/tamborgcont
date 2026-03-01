@@ -93,3 +93,5 @@ class Mirror:
 
     def promote(self, source, dest):
         self.ssh(f'rm -rf {dest} && mv {source} {dest}')
+
+    # TODO: test if the mirrored repo is usable
