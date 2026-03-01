@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import shutil
+import sys
 from contextlib import contextmanager, suppress
 from datetime import datetime
 from typing import TYPE_CHECKING
@@ -214,10 +215,11 @@ class ProcessRepo(JoinRaiseThread):
             self.logger.warning(f'Deleting damaged files in mirror: {damaged_files}')
             self.mirror.rsync(
                 '--files-from=-',
+                '--from0',
                 '--delete-missing-args',
                 '/var/empty/',
                 f'{self.mirror.destination}:{self.mirror.CURRENT}',
-                _in='\n'.join(damaged_files),
+                _in=join0(damaged_files),
                 _ok_code=[0, 24],  # 24: "some files vanished" is expected when source is empty
             )
         else:
@@ -251,11 +253,112 @@ class ProcessRepo(JoinRaiseThread):
             #
             # Swapping the order of the passes would protect more far archives.
 
+    # Note: Usually no "...completed" messages are logged,
+    # but it's made in the two methods below, because they're two threads running in parallel.
+
     def compact(self):
         self.logger.debug('Compacting...')
         compaction_threshold = get_config()['repos'][self.repo].get('compaction_threshold', 10)
         self.borg.compact(compaction_threshold)
         self.logger.debug('Compaction completed')
+
+    def rsync_snap_checked(self):
+        self.logger.debug('Rsyncing checked to mirror...')
+        '''
+        Simple and suboptimal in performance:
+
+        self.mirror.rsync(
+            '-rt',
+            f'--link-dest={self.mirror.CURRENT}',
+            f'{self.paths.repo_snap_checked}/',
+            f'{self.mirror.destination}:{self.mirror.CHECKED_NEW}',
+        )
+
+        Performant alternative: mbuffer.
+        '''
+        # Manually --link-dest from self.mirror.CURRENT to self.mirror.CHECKED_NEW:
+        snap_files = [
+            str(p.relative_to(self.paths.repo_snap_checked))
+            for p in self.paths.repo_snap_checked.rglob('*')
+            if p.is_file()
+        ]
+        ln_script = f'''
+            set -e
+            mkdir -p "{self.mirror.CHECKED_NEW}"
+            while IFS= read -r -d '' f; do
+              if [ -e "{self.mirror.CURRENT}/$f" ]; then
+                mkdir -p "{self.mirror.CHECKED_NEW}/$(dirname "$f")"
+                ln "{self.mirror.CURRENT}/$f" "{self.mirror.CHECKED_NEW}/$f"
+              fi
+            done
+        '''
+        self.mirror.ssh(
+            ln_script,
+            _in=join0(snap_files),
+            _err=sys.stderr,
+        )
+
+        # Find out which files should be transferred:
+        present_out = self.mirror.ssh(
+            # Doesn't work with BusyBox's find:   fr'find {self.mirror.CHECKED_NEW} -type f -printf "%P\0"',
+            # Alternative but that prefixes paths with `./`:
+            f'cd {self.mirror.CHECKED_NEW} && find . -type f -print0',
+            _err=sys.stderr,
+        )
+
+        def handle_prefix(path: str) -> str:
+            if not path.startswith('./'):
+                msg = f"Expected path to start with './', got: {path!r}"
+                raise ValueError(msg)
+            return path[2:]
+        present_files = set(map(handle_prefix, (p for p in present_out.split('\0') if p)))
+        to_transfer = [f for f in snap_files if f not in present_files]
+
+        # Transfer them, with buffering: ( tar c | mbuffer | ssh 'tar x' )
+        tar_out = sh.tar(
+            'c',
+            '-C', str(self.paths.repo_snap_checked),
+            verbatim_files_from=True,
+            null=True,
+            files_from='-',
+            _in=join0(to_transfer),
+            _err=sys.stderr,
+            _piped=True,
+        )
+        mirror_mbuffer_size = get_config()['repos'][self.repo]['mirror_mbuffer_size']
+        low_watermark_percent = 1
+        mbuffer_out = sh.mbuffer(
+            '-q',  # Don't print progress to stderr
+            '-m', mirror_mbuffer_size,
+            '-p', low_watermark_percent,
+            _in=tar_out,
+            _err=sys.stderr,
+            _piped=True,
+        )
+        self.mirror.ssh(
+            f'tar x -C {self.mirror.CHECKED_NEW}',
+            _in=mbuffer_out,
+            _err=sys.stderr,
+        )
+        # This transfers files to mirror through SSH, which reads from `mbuffer`.
+        # While there's data in the buffer, the HDD is free for `borg compact` to use it.
+        # When the buffer empties to 1%, `mbuffer` reads from `tar` output.
+        # Because `compact` is ioniced but `tar` is not, `compact` is paused,
+        # the HDD switches to filling the buffer, and then `compact` resumes.
+        #
+        # low_watermark_percent is chosen so that the buffer starts to refill before it reaches 0:
+        # ceil(100 * hdd_seek_time * network_rate / buffer_size),
+        # which for adverse conditions (gigabit connection and 512MB buffer), is 100 * 0.03 * (1000/8) / 512 = 0.73
+        #
+        # Note 1: pipes perform well with sh.py. In my dev computer:
+        # $ cat /dev/zero | pv >/dev/null  # 4.8 GiB/s
+        # $ </dev/zero pv >/dev/null       # 26 GiB/s
+        # >>> sh.pv(_err=sys.stderr, _in=sh.cat('/dev/zero', _piped=True), _out='/dev/null')  # 4.8 GiB/s
+        #
+        # Note 2: _piped commands *do* raise ErrorReturnCode on failure, so it's even better than `set -o pipefail`.
+
+        self.mirror.promote(self.mirror.CHECKED_NEW, self.mirror.CHECKED)
+        self.logger.debug('Rsync checked to mirror completed')
 
     def run_weekly(self):
         self.logger.debug('run_weekly: started')
@@ -299,18 +402,7 @@ class ProcessRepo(JoinRaiseThread):
 
                     compact_thread = CompactThread(self.repo, self.logger)
                     compact_thread.start()
-
-                    self.logger.debug('Rsyncing checked to mirror...')
-                    self.mirror.rsync(
-                        '-rt',
-                        f'--link-dest={self.mirror.CURRENT}',
-                        f'{self.paths.repo_snap_checked}/',
-                        f'{self.mirror.destination}:{self.mirror.CHECKED_NEW}',
-                    )
-                    self.mirror.promote(self.mirror.CHECKED_NEW, self.mirror.CHECKED)
-                    self.logger.debug('Rsync checked to mirror completed')
-                    # Note: Usually no "...completed" messages are logged,
-                    # but it's made here because there are two threads running in parallel.
+                    self.rsync_snap_checked()
 
                 compact_thread.join_raise()
                 # After compact and "rsync checked" finish, the new "current" copy can be rsynced.
@@ -324,7 +416,7 @@ class ProcessRepo(JoinRaiseThread):
         finally:
             if autorelease_lock:
                 shutil.rmtree(self.paths.lock)
-                # Note: this could release the lock while prune_thread is running. But it doesn't matter:
+                # Note: this could release the lock while compact_thread is running. But it doesn't matter:
                 # instead of the hook reliably blocking access with "Repo is locked by user run_weekly",
                 # it will less reliably block with "Underlying repo is locked".
 
@@ -376,6 +468,10 @@ def wol(ssh_cfg: SshConfig, mac: str):
     broadcast_ip = f"{ssh_cfg.host.rsplit('.', 1)[0]}.255"
 
     wakeonlan.send_magic_packet(mac, ip_address=broadcast_ip)
+
+
+def join0(lines: list[str]) -> str:
+    return '\0'.join(lines) + '\0'
 
 
 if __name__ == '__main__':

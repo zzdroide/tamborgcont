@@ -7,7 +7,7 @@ import sh
 
 from shared.constants import Paths
 
-nice = sh.nice.bake('-n19', 'ionice', '-c2', '-n7')
+nice = sh.nice.bake('-n19', 'ionice', '-c3')
 
 
 class Borg:

@@ -47,6 +47,7 @@
       # borg-daily
       - rsync
       - smartmontools  # smartctl
+      - mbuffer
 
       # For systemd-python (https://github.com/systemd/python-systemd/#to-build-from-source)
       - libsystemd-dev

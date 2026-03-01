@@ -31,6 +31,7 @@ repos:
     # Try to choose a high threshold if the repo is going to be mirrored: https://github.com/borgbackup/borg/issues/635
     compaction_threshold: 20
     mirror_host: mirror.example.com
+    mirror_mbuffer_size: 2G
 
   AMGS:
     prune:
