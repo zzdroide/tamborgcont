@@ -115,3 +115,11 @@
     owner: "{{ ansible_user_id }}"
     group: "{{ ansible_user_id }}"
     mode: '0755'
+
+- name: Clone tamborgmatic repo with restore instructions
+  ansible.builtin.git:
+    clone: true
+    repo: https://github.com/zzdroide/tamborgmatic
+    dest: /home/borg/tamborgmatic
+  become: true
+  become_user: borg

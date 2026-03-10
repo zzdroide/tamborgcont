@@ -62,6 +62,7 @@ def main():
             threads.append(t)
 
         smarthealthc()
+        tamborgmatic_fetch()
 
         for t in threads:
             t.join_raise()
@@ -472,6 +473,10 @@ def wol(ssh_cfg: SshConfig, mac: str):
 
 def join0(lines: list[str]) -> str:
     return '\0'.join(lines) + '\0'
+
+
+def tamborgmatic_fetch():
+    sh.git.fetch(_cwd='/home/borg/tamborgmatic', _no_out=True)
 
 
 if __name__ == '__main__':
