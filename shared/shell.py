@@ -79,7 +79,7 @@ class Mirror:
         self.ssh = sh.hpnssh.bake(*ssh_opts, self.destination)
 
         rsync_rsh = ' '.join(['hpnssh', *ssh_opts])
-        self.rsync = sh.rsync.bake(rsh=rsync_rsh, stats=True, _out=sys.stdout, _err_to_out=True)
+        self.rsync = sh.rsync.bake('-hhh', rsh=rsync_rsh, stats=True, _out=sys.stdout, _err_to_out=True)
         self.nice_stdout_rsync = nice.rsync.bake(rsh=rsync_rsh, _err=sys.stderr)
 
     @contextmanager
