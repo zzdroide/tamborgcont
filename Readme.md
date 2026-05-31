@@ -41,7 +41,7 @@ Note: autosuspend is enabled in Vagrant too. If `molecule login` hangs, reset th
 And from local, deploy to server with:
 ```sh
 cd ansible
-ANSIBLE_PIPELINING=True ANSIBLE_CALLBACK_RESULT_FORMAT=yaml poetry run ansible-playbook -i t@10.0.0.20, -l t@10.0.0.20 --ask-become-pass playbooks/deploy.yml
+ANSIBLE_PIPELINING=True ANSIBLE_CALLBACK_RESULT_FORMAT=yaml poetry run ansible-playbook -i t@10.0.0.20, -l t@10.0.0.20 -e always_on_server_ip=10.0.0.30 --ask-become-pass playbooks/deploy.yml
 ```
 
 Some manual interactive setup after it finishes:

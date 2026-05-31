@@ -60,3 +60,34 @@
       environment:
         XDG_RUNTIME_DIR: "/run/user/{{ borg_user_uid.stdout }}"
       changed_when: false
+
+    - name: Verify TLS files exist
+      ansible.builtin.stat:
+        path: "/etc/ssl/tamborg/{{ item }}"
+      loop:
+        - ca.key
+        - ca.crt
+        - tamborg_server.key
+        - tamborg_server.crt
+        - always_on_server.key
+        - always_on_server.crt
+      become: true
+      register: tls_files
+      changed_when: false
+
+    - name: Assert TLS files exist
+      ansible.builtin.assert:
+        that: item.stat.exists
+        quiet: true
+      loop: "{{ tls_files.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
+    - name: Verify leaf certificates are signed by CA
+      ansible.builtin.command:
+        cmd: openssl verify -CAfile /etc/ssl/tamborg/ca.crt /etc/ssl/tamborg/{{ item }}.crt
+      loop:
+        - tamborg_server
+        - always_on_server
+      become: true
+      changed_when: false

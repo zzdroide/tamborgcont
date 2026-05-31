@@ -121,5 +121,6 @@
     clone: true
     repo: https://github.com/zzdroide/tamborgmatic
     dest: /home/borg/tamborgmatic
+    version: master
   become: true
   become_user: borg

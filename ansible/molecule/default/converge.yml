@@ -13,3 +13,5 @@
     - name: Test deploy
       ansible.builtin.include_role:
         name: ../../playbooks/roles/deploy
+      vars:
+        always_on_server_ip: 10.0.0.30

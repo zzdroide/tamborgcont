@@ -76,6 +76,9 @@
 
       # To manage server sleep
       - autosuspend
+
+      # To generate TLS certificates
+      - python3-cryptography
     state: present
     update_cache: true
     cache_valid_time: "{{ 60 * 60 * 12 }}"
@@ -107,5 +110,10 @@
 
 - name: Install Python packages
   ansible.builtin.import_tasks: python.yml
+  vars:
+    ansible_become: true
+
+- name: Setup TLS certificates
+  ansible.builtin.import_tasks: tls.yml
   vars:
     ansible_become: true
