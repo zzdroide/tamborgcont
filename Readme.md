@@ -83,9 +83,28 @@ md ~/tamborgcont/state/TAM
 touch ~/tamborgcont/state/TAM/enabled
 
 # Forward port 1701 in router if backing up over internet. Do not forward port 8087.
+
+# To receive journal logs in always_on_server:
+ssh t@10.0.0.20 sudo tar c -C /etc/ssl/tamborg ca.crt always_on_server.key always_on_server.crt | ssh always_on_server "sudo mkdir -p /etc/ssl/tamborg && sudo tar x -C /etc/ssl/tamborg"
+
+ssh always_on_server sudo sh <<'EOF'
+set -e
+apt-get install -y systemd-journal-remote
+chmod 0644 /etc/ssl/tamborg/ca.crt /etc/ssl/tamborg/always_on_server.crt
+chown root:systemd-journal-remote /etc/ssl/tamborg/always_on_server.key
+chmod 0640 /etc/ssl/tamborg/always_on_server.key
+cat >/etc/systemd/journal-remote.conf <<'CONF'
+[Remote]
+ServerKeyFile=/etc/ssl/tamborg/always_on_server.key
+ServerCertificateFile=/etc/ssl/tamborg/always_on_server.crt
+TrustedCertificateFile=/etc/ssl/tamborg/ca.crt
+CONF
+systemctl enable systemd-journal-remote.socket
+systemctl restart systemd-journal-remote
+EOF
 ```
 
-To edit users later:
+To edit repo users later:
 ```sh
 nano ~/tamborgcont/config.yml
 ~/tamborgcont/update_authorized_keys.sh
@@ -101,4 +120,7 @@ sudo journalctl -ef \
 
 # As borg user:
 journalctl --user -efu borg-daily.service
+
+# In always_on_server:
+journalctl --directory=/var/log/journal/remote/TODO
 ```

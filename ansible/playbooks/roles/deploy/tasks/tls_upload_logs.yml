@@ -1,3 +1,23 @@
+- name: Create systemd-journal-upload group
+  # Static group so that the key file can have that group.
+  ansible.builtin.group:
+    name: systemd-journal-upload
+    system: true
+    state: present
+
+- name: Create systemd-journal-upload user
+  # Static user too, because with DynamicUser=yes and no user, it fails with:
+  # "Failed to update dynamic user credentials: User or group with specified name already exists."
+  ansible.builtin.user:
+    name: systemd-journal-upload
+    group: systemd-journal-upload
+    home: /run/systemd
+    create_home: false
+    shell: /usr/sbin/nologin
+    password: "!"
+    system: true
+    state: present
+
 - name: Create TLS directory
   ansible.builtin.file:
     path: /etc/ssl/tamborg
@@ -46,12 +66,16 @@
   community.crypto.openssl_privatekey:
     path: "/etc/ssl/tamborg/{{ item.name }}.key"
     type: Ed25519
-    mode: "0600"
+    mode: "{{ item.mode }}"
     owner: root
-    group: root
+    group: "{{ item.group }}"
   loop:
     - name: tamborg_server
+      group: systemd-journal-upload
+      mode: "0640"
     - name: always_on_server
+      group: root
+      mode: "0600"
 
 - name: Create leaf certificate signing requests
   community.crypto.openssl_csr:
@@ -87,3 +111,40 @@
   loop:
     - name: tamborg_server
     - name: always_on_server
+
+- name: Configure journal-upload
+  ansible.builtin.copy:
+    dest: /etc/systemd/journal-upload.conf
+    content: |
+      [Upload]
+      URL=https://{{ always_on_server_ip }}:19532
+      ServerKeyFile=/etc/ssl/tamborg/tamborg_server.key
+      ServerCertificateFile=/etc/ssl/tamborg/tamborg_server.crt
+      TrustedCertificateFile=/etc/ssl/tamborg/ca.crt
+    owner: root
+    group: root
+    mode: "0644"
+  register: journal_upload_conf
+
+- name: Enable and start systemd-journal-upload
+  ansible.builtin.systemd:
+    name: systemd-journal-upload
+    enabled: true
+    state: started
+    daemon_reload: true
+
+- name: Restart systemd-journal-upload on new config
+  ansible.builtin.systemd:
+    name: systemd-journal-upload
+    state: restarted
+  when: journal_upload_conf.changed
+
+- name: Gather service facts
+  ansible.builtin.service_facts:
+
+- name: Ensure systemd-journal-upload started successfully
+  ansible.builtin.assert:
+    that:
+      - "'systemd-journal-upload.service' in ansible_facts.services"
+      - ansible_facts.services['systemd-journal-upload.service'].state == 'running'
+    fail_msg: systemd-journal-upload is not running

@@ -79,6 +79,9 @@
 
       # To generate TLS certificates
       - python3-cryptography
+
+      # To send journal logs:
+      - systemd-journal-remote
     state: present
     update_cache: true
     cache_valid_time: "{{ 60 * 60 * 12 }}"
@@ -89,6 +92,11 @@
   vars:
     ansible_become: true
     iface: "{{ ansible_default_ipv4.interface }}"   # enp3s0
+
+- name: Setup TLS certificates and journal upload
+  ansible.builtin.import_tasks: tls_upload_logs.yml
+  vars:
+    ansible_become: true
 
 - name: Setup users
   ansible.builtin.import_tasks: users.yml
@@ -110,10 +118,5 @@
 
 - name: Install Python packages
   ansible.builtin.import_tasks: python.yml
-  vars:
-    ansible_become: true
-
-- name: Setup TLS certificates
-  ansible.builtin.import_tasks: tls.yml
   vars:
     ansible_become: true
