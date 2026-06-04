@@ -67,15 +67,15 @@ poetry sync --without=dev
 # If you have more than 1 HDD, place the passphrase of [the repo in one HDD], in the other HDD.
 # This way, if the HDD fails and goes to RMA, the encrypted data goes without its passphrase.
 # Alternative: store the passphrase in a permanently attached USB stick.
-md ~/env
+(umask 077 && md ~/env)
 
-cp ~/tamborgcont/env.example /mnt/somewhere/TAM
+(umask 077 && cp ~/tamborgcont/env.example /mnt/somewhere/TAM)
 ln -s /mnt/somewhere/TAM ~/env/
 # (or: `cp ~/tamborgcont/env.example ~/env/TAM`, and no symlink)
 
 nano ~/env/TAM
 
-cp ~/tamborgcont/config.{test.yml,.yml}
+(umask 077 && cp ~/tamborgcont/config.{test.yml,.yml})
 nano ~/tamborgcont/config.yml
 ~/tamborgcont/update_authorized_keys.sh
 
@@ -102,3 +102,10 @@ sudo journalctl -ef \
 # As borg user:
 journalctl --user -efu borg-daily.service
 ```
+
+### Wiping a decommissioned HDD
+A dying hard drive that still works can be partially wiped with the following command, after it's cloned and replaced:
+```sh
+sudo su -c 'shred -n1 ./etc/ssh/ssh_host_*_key ./usr/local/etc/hpnssh/ssh_host_*_key ./home/*/.ssh/id_* ./home/borg/*/config ./home/borg/tamborgcont/config.yml ./home/borg/env/*'
+```
+All other files should be either open-source software (Debian, Python, tamborg itself), or segment files with encrypted data missing its key.
