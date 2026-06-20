@@ -123,6 +123,7 @@ class Hook:
         except Exception:
             logger.exception(f'Error releasing lock on restart for repo {self.repo}')
 
+    @staticmethod
     def release_locks_on_restart():
         for repo in get_config_repos():
             hook = Hook(repo)
