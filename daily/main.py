@@ -390,22 +390,27 @@ class ProcessRepo(JoinRaiseThread):
 
             damaged_files = []
             if self.mirror:
-                with self.mirror.mount(), self.data_snapshot(self.paths.repo_snap_checked):
-                    damaged_files = self.delete_mirror_damaged()
-                    self.prune()
-                    # Trying to parallel other operations together with the methods above would be slower,
-                    # because of HDD thrashing.
-                    outer_self = self
+                compact_thread = None
+                try:
+                    with self.mirror.mount(), self.data_snapshot(self.paths.repo_snap_checked):
+                        damaged_files = self.delete_mirror_damaged()
+                        self.prune()
+                        # Trying to parallel other operations together with the methods above would be slower,
+                        # because of HDD thrashing.
+                        outer_self = self
 
-                    class CompactThread(JoinRaiseThread):
-                        def _run(self):
-                            outer_self.compact()
+                        class CompactThread(JoinRaiseThread):
+                            def _run(self):
+                                outer_self.compact()
 
-                    compact_thread = CompactThread(self.repo, self.logger)
-                    compact_thread.start()
-                    self.rsync_snap_checked()
-
-                compact_thread.join_raise()
+                        compact_thread = CompactThread(self.repo, self.logger)
+                        compact_thread.start()
+                        self.rsync_snap_checked()
+                finally:
+                    # If self.rsync_snap_checked() crashes, wait for compact_thread to finish
+                    # before autoreleasing the lock in the outer `finally`.
+                    if compact_thread is not None:
+                        compact_thread.join_raise()
                 # After compact and "rsync checked" finish, the new "current" copy can be rsynced.
                 self.rsync_current(
                     link_dest=self.mirror.CHECKED  # The latest copy was to checked instead of current
@@ -417,9 +422,6 @@ class ProcessRepo(JoinRaiseThread):
         finally:
             if autorelease_lock:
                 shutil.rmtree(self.paths.lock)
-                # Note: this could release the lock while compact_thread is running. But it doesn't matter:
-                # instead of the hook reliably blocking access with "Repo is locked by user run_weekly",
-                # it will less reliably block with "Underlying repo is locked".
 
         if damaged_files:
             msg = 'run_weekly completed successfully, but mirror had damaged files'
