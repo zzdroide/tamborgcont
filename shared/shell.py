@@ -27,11 +27,23 @@ class Borg:
             return False
 
     def dump_arcs(self):
+        lock_wait = 3
+        # The default lock_wait of 1s failed once with the following events:
+        # 1. A client closed and opened a new borg session in sucession,
+        #    so acquire_lock and release_lock started running in parallel.
+        # 2. acquire_lock ran is_repo_unlocked(): `borg with-lock :: true`.
+        #    Because the server was under load, this took more than 1s.
+        # 3. release_lock ran dump_arcs() and threw:
+        #    "Failed to create/acquire the lock /home/borg/REPO/lock.exclusive (timeout)"
+        # The exclusive lock was then released, but tamborg state lock was not,
+        # and borg-daily hung forever waiting for 'lock_released' to be published.
+
         return self._borg.list(
             # Separates with {NUL} ('\x00') because it's the only forbidden character
             # in archive names.
             format='{id}{NUL}{barchive}{NUL}',
             consider_checkpoints=True,
+            lock_wait=lock_wait,
         )
 
     def delete_temp_archives(self):

@@ -156,6 +156,7 @@ class ProcessRepo(JoinRaiseThread):
                 return
 
             # Wait infinitely for lock release. Rely on ssh timeout.
+            # (Note: if the hook throws an exception before 'lock_released' is published, this will wait forever.)
             released = self.pubsub.wait_for(prefix=f'lock_released {user['user']} ')
             new_arcs_count = int(released.split(' ')[2])
             # And loop until an archive is created.
