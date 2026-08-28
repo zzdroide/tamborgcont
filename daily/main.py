@@ -290,7 +290,7 @@ class ProcessRepo(JoinRaiseThread):
             while IFS= read -r -d '' f; do
               if [ -e "{self.mirror.CURRENT}/$f" ]; then
                 mkdir -p "{self.mirror.CHECKED_NEW}/$(dirname "$f")"
-                ln "{self.mirror.CURRENT}/$f" "{self.mirror.CHECKED_NEW}/$f"
+                ln -f "{self.mirror.CURRENT}/$f" "{self.mirror.CHECKED_NEW}/$f"
               fi
             done
         '''
