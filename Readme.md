@@ -91,6 +91,15 @@ nano ~/tamborgcont/config.yml
 ~/tamborgcont/update_authorized_keys.sh
 ```
 
+### Upgrading
+```
+root# sudo apt update && sudo apt upgrade -y
+borg$ pipx upgrade-all
+
+borg:~/tamborgcont$ git pull
+borg:~/tamborgcont$ poetry sync --without=dev
+```
+
 ### Watching logs
 ```sh
 # As admin user:
