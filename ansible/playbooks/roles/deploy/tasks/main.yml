@@ -4,7 +4,7 @@
   become_user: nobody
   register: check_become_user
   failed_when: check_become_user.stdout != "nobody"
-  # If it fails here, maybe you forgot "ANSIBLE_PIPELINING=True"
+  # If it fails here, pipelining is off (run from ansible/ so ansible.cfg is loaded)
   changed_when: false
 
 - name: Install prerequisite packages

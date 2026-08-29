@@ -12,6 +12,7 @@ sudo add-apt-repository ppa:deadsnakes/ppa && sudo apt update && sudo apt instal
 pipx install poetry
 poetry env use python3.13
 poetry sync
+cd ansible && poetry run ansible-galaxy install -r requirements.yml
 ```
 
 ### Running tests
@@ -41,7 +42,7 @@ Note: autosuspend is enabled in Vagrant too. If `molecule login` hangs, reset th
 And from local, deploy to server with:
 ```sh
 cd ansible
-ANSIBLE_PIPELINING=True ANSIBLE_CALLBACK_RESULT_FORMAT=yaml poetry run ansible-playbook -i t@10.0.0.20, -l t@10.0.0.20 --ask-become-pass playbooks/deploy.yml
+poetry run ansible-playbook -i t@10.0.0.20, -l t@10.0.0.20 --ask-become-pass playbooks/deploy.yml
 ```
 
 Some manual interactive setup after it finishes:

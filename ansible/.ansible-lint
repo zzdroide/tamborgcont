@@ -7,3 +7,4 @@ profile: production
 exclude_paths:
   - .cache/
   - .galaxy/
+  - .ansible/

@@ -1,6 +1,6 @@
 dependency:
   name: shell
-  command: ansible-lint
+  command: ansible-galaxy install -r requirements.yml && ansible-lint
 
 driver:
   name: vagrant
@@ -16,9 +16,15 @@ platforms:
 provisioner:
   name: ansible
 
+  env:
+    ANSIBLE_HOME: ${MOLECULE_PROJECT_DIRECTORY}/.ansible
+    ANSIBLE_COLLECTIONS_PATH: ${MOLECULE_PROJECT_DIRECTORY}/.ansible/collections
+    ANSIBLE_ROLES_PATH: ${MOLECULE_PROJECT_DIRECTORY}/.ansible/roles
+
   config_options:
     defaults:
-      result_format: yaml   # Readable and correct
+      home: ${MOLECULE_PROJECT_DIRECTORY}/.ansible
+      callback_result_format: yaml  # Readable and correct
     ssh_connection:
       pipelining: true
 

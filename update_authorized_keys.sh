@@ -2,8 +2,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/ansible"
 
-export ANSIBLE_CALLBACK_RESULT_FORMAT=yaml  # Readable and correct
-
+# This runs in server instead of development machine, so hardcoded dependency instead of requirements.yml:
 poetry -q run ansible-galaxy collection install ansible.posix
 
 poetry -q run \
