@@ -9,5 +9,5 @@
     - name: poetry
       source: poetry
     - name: borgbackup~=1.4
-      source: borgbackup[pyfuse3]
+      source: borgbackup[pyfuse3]~=1.4
       # Note: there's a PPA, but it doesn't work with Debian.
