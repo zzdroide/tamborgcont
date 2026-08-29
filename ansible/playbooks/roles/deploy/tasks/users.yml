@@ -116,7 +116,7 @@
     group: "{{ ansible_user_id }}"
     mode: '0755'
 
-- name: Clone tamborgmatic repo with restore instructions
+- name: Clone tamborgmatic repo with restore instructions  # noqa: latest
   ansible.builtin.git:
     clone: true
     repo: https://github.com/zzdroide/tamborgmatic
