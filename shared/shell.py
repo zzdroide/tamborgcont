@@ -64,7 +64,12 @@ class Borg:
         # Source: https://github.com/borgbackup/borg/issues/2251#issuecomment-284189633
 
     def prune(self, user, **kwargs):
-        self._borg.prune(glob_archives=f'{user}-*', **kwargs)
+        self._borg(
+            '--verbose',
+            'prune',
+            glob_archives=f'{user}-*',
+            **kwargs,
+        )
 
     def compact(self, threshold):
         self._nice_borg.compact(threshold=threshold)
